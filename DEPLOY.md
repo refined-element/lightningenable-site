@@ -1,92 +1,93 @@
 # Lightning Enable Demo — Deployment
 
-End-to-end steps to ship `demo.lightningenable.com` (later, the apex
-`lightningenable.com`) on Vercel.
+Same pattern as `docs.lightningenable.com`, `a-commerce.lightningenable.com`,
+`nostrwolfe.com`: Vercel watches the GitHub repo and auto-deploys every
+push to `main`. No CLI required.
 
-## Prereqs
+## First-time setup (one-time)
 
-- [Vercel CLI](https://vercel.com/docs/cli) installed (`npm i -g vercel`)
-- Logged into Vercel (`vercel login`)
-- A new merchant API key on api.lightningenable.com (rotation done
-  2026-05-14; new key in `$env:TEMP\le-demo-key.txt`)
-- An NWC URL from a funded CoinOS wallet (or any NWC-capable wallet) —
-  optional for first deploy, the demo agent endpoint will return an
-  error until set, which is expected
+1. **Go to https://vercel.com/new** (logged in as the org that owns the other
+   `refined-element` Vercel projects).
+2. **Import Git Repository** → select `refined-element/lightningenable-demo`.
+   First time importing from the `refined-element` GitHub org, Vercel may ask
+   you to install/grant the Vercel GitHub App on the org — same one-time
+   step as the other projects.
+3. Vercel auto-detects the project type: static site (`public/`) plus Node
+   serverless functions (`api/`). No build command or framework preset
+   needed; the defaults are correct.
+4. Before clicking Deploy, expand **Environment Variables** and add:
 
-## First deploy
+   | Name | Value |
+   |---|---|
+   | `LIGHTNING_ENABLE_API_KEY` | The demo merchant's LE API key. Paste at deploy time, never commit. |
+   | `DEMO_AGENT_NWC_URL` | NWC connection URL for the demo agent's spending wallet. Placeholder `nostr+walletconnect://placeholder-replace-me` is OK to start; `/api/run-agent` returns an error until you swap in a real funded URL. |
+   | `LIGHTNING_ENABLE_API_BASE_URL` _(optional)_ | Override the LE API base URL. Defaults to `https://api.lightningenable.com`. |
 
-```powershell
-cd F:\lightningenable-demo
+   Apply to **Production** (and **Preview** if you want PR previews to also
+   make real calls).
 
-# 1. Link to (or create) the Vercel project.
-vercel link
-#    Prompt: ? Set up "F:\lightningenable-demo"?           Y
-#    Prompt: ? Which scope?                                <your org>
-#    Prompt: ? Link to existing project?                   N
-#    Prompt: ? What's your project's name?                 lightningenable-demo
-#    Prompt: ? In which directory is your code located?    ./
+5. **Deploy.** Static + serverless deploy takes ~30s.
 
-# 2. Configure env vars without exposing the key in shell history.
-.\scripts\setup-vercel-env.ps1
-#    - Reads $env:TEMP\le-demo-key.txt
-#    - Pipes it into `vercel env add LIGHTNING_ENABLE_API_KEY production`
-#    - Adds a placeholder DEMO_AGENT_NWC_URL
-#    - Deletes the temp key file when done
+## Custom domain — `demo.lightningenable.com`
 
-# 3. Push the first deploy.
-vercel --prod
-#    Records the production URL. Note it — the DNS step needs it.
-```
+In the Vercel project: **Settings → Domains → Add Domain →
+`demo.lightningenable.com`**. Vercel will show the exact Namecheap record
+to add. Typically:
 
-## DNS at Namecheap — `demo.lightningenable.com`
+- **Type:** `CNAME`
+- **Host:** `demo`
+- **Value:** `cname.vercel-dns.com`
+- **TTL:** Automatic
 
-After the first `vercel --prod`, Vercel will print the deployment URL
-(something like `lightningenable-demo-<hash>.vercel.app`). To map
-`demo.lightningenable.com` to it:
+Add it at Namecheap (Domain List → Manage `lightningenable.com` →
+Advanced DNS). Vercel auto-verifies and issues the SSL cert within
+~5 min.
 
-1. Log into Namecheap → **Domain List** → **Manage** on `lightningenable.com` → **Advanced DNS** tab.
-2. Add a new **CNAME Record**:
-   - **Host:** `demo`
-   - **Value:** `cname.vercel-dns.com`
-   - **TTL:** Automatic
-3. Save. Propagation usually completes within ~5 min, max ~1 hour.
-4. In Vercel project → **Settings → Domains** → **Add Domain** →
-   `demo.lightningenable.com`. Vercel will verify the CNAME and issue
-   the SSL cert automatically.
+## Custom domain — apex `lightningenable.com` (Phase C, later)
 
-## DNS at Namecheap — apex `lightningenable.com` (Phase C, later)
+When ready to promote the demo to the apex, see the phasing in
+`F:\Vault\projects\lightning-enable\landing-site-and-brand-direction.md`
+§ "What's blocked on what". Short version: add the apex domain in the
+Vercel project Settings → Domains; Vercel returns an `A` record (Vercel
+apex IP) plus optional `www` CNAME instructions; mirror those in
+Namecheap; Vercel issues the cert. Then add
+`<link rel="canonical" href="https://lightningenable.com/" />` on the
+re-xbk LE page (see § "SEO mechanics" in the same doc).
 
-When ready to promote the demo to the apex:
+## Updating env vars
 
-1. Namecheap → Advanced DNS.
-2. Replace any existing apex `A` / `URL Redirect` records on `@` with:
-   - **A Record** (Vercel apex):
-     - **Host:** `@`
-     - **Value:** `76.76.21.21`
-     - **TTL:** Automatic
-   - Optional `www` CNAME:
-     - **Host:** `www`
-     - **Value:** `cname.vercel-dns.com`
-     - **TTL:** Automatic
-3. In Vercel → Settings → Domains → Add `lightningenable.com` (and `www.lightningenable.com` as alias).
-4. Vercel will verify and issue the cert.
-5. Optional: add `<link rel="canonical" href="https://lightningenable.com/" />` on the re-xbk page to consolidate SEO authority on the new apex (see `landing-site-and-brand-direction.md` § SEO mechanics).
+After first deploy, env-var changes are made in **Project → Settings →
+Environment Variables**. Changing a value does NOT automatically redeploy
+the running prod build; redeploy the latest commit (Deployments → ⋮ →
+Redeploy) to pick up the new value, or wait for the next git push to
+`main`.
 
-## Updating the NWC URL (when you have it)
+When the real NWC URL is in hand:
+1. Settings → Environment Variables → edit `DEMO_AGENT_NWC_URL`.
+2. Deployments → latest production deploy → ⋮ → **Redeploy**.
+
+## Local dev (optional)
+
+For local dev with `vercel dev` (live function reloading + real env from
+Vercel):
 
 ```powershell
 cd F:\lightningenable-demo
-vercel env rm DEMO_AGENT_NWC_URL production
-'<real-nwc-url>' | vercel env add DEMO_AGENT_NWC_URL production
-vercel --prod
+npm install -g vercel    # if not installed
+vercel login             # interactive OAuth, one-time
+vercel link              # interactive — pick the existing
+                         # lightningenable-demo project
+vercel env pull .env     # pulls production env vars into local .env
+                         # (.env is gitignored)
+vercel dev               # opens http://localhost:3000
 ```
 
-## Local dev
+`vercel login` and `vercel link` are only needed once per machine. Most
+people never need to install the CLI at all — every deploy goes through
+the GitHub integration above.
 
-```powershell
-cd F:\lightningenable-demo
-# Pull env vars from Vercel into a local .env (which is gitignored):
-vercel env pull .env
-vercel dev
-# Open http://localhost:3000
-```
+## Auto-deploy
+
+Every push to `main` triggers a production deploy. Every push to a
+non-`main` branch (or open PR) gets a preview deploy at a unique URL.
+Vercel comments preview URLs on PRs automatically.
