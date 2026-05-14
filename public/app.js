@@ -22,6 +22,23 @@
     "btc-price": document.getElementById("param-btc-price"),
   };
 
+  // ── BTC rate (no hardcoded fallback) ────────────────────────────────
+  // Fire-and-forget at page load. /api/btc-price races CoinGecko +
+  // Coinbase + Kraken (mirrors LE's BitcoinPriceService); on total
+  // failure we leave window.__BTC_RATE__ undefined and the trace footer
+  // renders "(USD price unavailable)" rather than a fake number.
+  window.__BTC_RATE__ = undefined;
+  fetch("/api/btc-price", { headers: { Accept: "application/json" } })
+    .then((r) => (r.ok ? r.json() : Promise.reject(r.status)))
+    .then((j) => {
+      if (typeof j?.rate === "number" && j.rate > 0) {
+        window.__BTC_RATE__ = { rate: j.rate, source: j.source || "unknown" };
+      }
+    })
+    .catch(() => {
+      // Silent — the trace footer handles the unavailable case directly.
+    });
+
   // ── Endpoint switcher ───────────────────────────────────────────────
   radios.forEach((r) =>
     r.addEventListener("change", () => {
@@ -108,13 +125,40 @@
       await delay(180);
     }
 
-    // Summary line at the bottom
+    // Summary line at the bottom. Dollar value uses a real BTC/USD rate
+    // fetched from /api/btc-price (multi-source: CoinGecko, Coinbase,
+    // Kraken — fail-loud, no hardcoded fallback). If the rate fetch
+    // failed at page load, render the sat count only and a clear
+    // "(USD price unavailable)" note — never a fake dollar value.
+    // All interpolated values are routed through escapeHtml() before
+    // being assembled into innerHTML — even server-controlled fields
+    // (totalMs/totalSats) and the BTC source string are escaped on
+    // principle so a future regression in the upstream can't open an
+    // XSS hole here.
     const totalLine = document.createElement("div");
     totalLine.className = "trace-summary";
+    const btc = window.__BTC_RATE__;
+    let usdSegment = "";
+    // != null gates on "the backend reported a sat count" — even 0 is a
+    // real value here (free-tier endpoints, settled-but-zero refunds)
+    // and deserves a $0.00 segment rather than a missing one.
+    if (data.totalSats != null) {
+      if (btc && btc.rate > 0) {
+        const usd = (data.totalSats / 100_000_000) * btc.rate;
+        const formatted = usd < 0.01
+          ? `$${usd.toFixed(6)}`
+          : `$${usd.toFixed(4)}`;
+        usdSegment = `(≈ ${escapeHtml(formatted)} at $${escapeHtml(Math.round(btc.rate).toLocaleString())}/BTC via ${escapeHtml(btc.source)})`;
+      } else {
+        usdSegment = `(USD price unavailable)`;
+      }
+    }
+    const safeMs = escapeHtml(String(data.totalMs));
+    const safeSats = escapeHtml(String(data.totalSats ?? "?"));
     totalLine.innerHTML = `
-      <strong>Done in ${data.totalMs} ms.</strong>
-      Spent ${data.totalSats ?? "?"} sat
-      ${data.totalSats ? `(≈ $${(data.totalSats * 0.0008).toFixed(4)} at $80k/BTC)` : ""}
+      <strong>Done in ${safeMs} ms.</strong>
+      Spent ${safeSats} sat
+      ${usdSegment}
     `;
     elTrace.appendChild(totalLine);
 

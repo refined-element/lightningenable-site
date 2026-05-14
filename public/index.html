@@ -6,7 +6,7 @@
 <title>Lightning Enable — Add Lightning revenue to your API</title>
 <meta name="description" content="Monetize any HTTP API with per-request Lightning payments. AI agents pay in sats. Drop in three lines, no per-transaction fees." />
 <meta property="og:title" content="Lightning Enable — Add Lightning revenue to your API" />
-<meta property="og:description" content="Drop three lines into your API and let AI agents pay you per request in Lightning. Real demo, real Bitcoin, ≈ $0.0008 per call." />
+<meta property="og:description" content="Drop three lines into your API and let AI agents pay you per request in Lightning. Real demo, real Bitcoin, ≈ 1 sat per request." />
 <meta property="og:type" content="website" />
 <meta property="og:url" content="https://demo.lightningenable.com" />
 <meta name="twitter:card" content="summary_large_image" />
@@ -18,8 +18,20 @@
 </head>
 <body>
 
+<!-- ─── Site header ─── -->
+<header class="site-header">
+  <a class="site-brand" href="/" aria-label="Lightning Enable home">
+    <img class="site-logo" src="images/logo.svg" alt="Lightning Enable" width="216" height="58" />
+  </a>
+  <nav class="site-nav">
+    <a href="https://docs.lightningenable.com" target="_blank" rel="noopener noreferrer">Docs</a>
+    <a href="#pricing">Pricing</a>
+    <a class="site-nav-cta" href="https://api.lightningenable.com/Checkout?tier=individual" target="_blank" rel="noopener noreferrer">Start free trial</a>
+  </nav>
+</header>
+
 <!-- ─── Hero ─── -->
-<header class="hero">
+<section class="hero">
   <div class="bolt-mark" aria-hidden="true">⚡</div>
   <h1 class="hero-title">
     Add <span class="highlight">Lightning revenue</span><br />
@@ -35,9 +47,9 @@
     <a href="#build" class="cta cta-ghost">View the code</a>
   </div>
   <div class="hero-meta">
-    Real Lightning · ≈ $0.0008 per call · ~1 second settlement
+    Real Lightning · 1 sat per call · ~1 second settlement
   </div>
-</header>
+</section>
 
 <!-- ─── Try it ─── -->
 <section id="try" class="section">
@@ -165,8 +177,8 @@ app.<span class="c-fn">get</span>(<span class="c-str">"/api/premium/data"</span>
   </div>
   <div class="install-row install-repo">
     <span class="install-label">Reference app:</span>
-    <a class="repo-link" data-install="dotnet" href="https://github.com/refined-element/l402-example-aspnet" target="_blank" rel="noopener">github.com/refined-element/l402-example-aspnet</a>
-    <a class="repo-link hidden" data-install="node" href="https://github.com/refined-element/l402-example-node" target="_blank" rel="noopener">github.com/refined-element/l402-example-node</a>
+    <a class="repo-link" data-install="dotnet" href="https://github.com/refined-element/l402-example-aspnet" target="_blank" rel="noopener noreferrer">github.com/refined-element/l402-example-aspnet</a>
+    <a class="repo-link hidden" data-install="node" href="https://github.com/refined-element/l402-example-node" target="_blank" rel="noopener noreferrer">github.com/refined-element/l402-example-node</a>
   </div>
 </section>
 
@@ -228,6 +240,17 @@ app.<span class="c-fn">get</span>(<span class="c-str">"/api/premium/data"</span>
         <li>Live dashboard + payment feed</li>
         <li>30-day free trial</li>
       </ul>
+      <div class="pricing-actions">
+        <a class="cta cta-primary"
+           href="https://api.lightningenable.com/Checkout?tier=individual"
+           target="_blank" rel="noopener noreferrer">Start free trial</a>
+        <a class="cta-btc"
+           href="https://refinedelement.com/checkout/lightning-enable/bitcoin"
+           target="_blank" rel="noopener noreferrer"
+           title="Pay annually with Bitcoin and save 10%">
+          ⚡ Pay with Bitcoin — 10% off
+        </a>
+      </div>
     </div>
     <div class="pricing-card pricing-card-business">
       <div class="pricing-name">Agentic Commerce — Business</div>
@@ -239,27 +262,37 @@ app.<span class="c-fn">get</span>(<span class="c-str">"/api/premium/data"</span>
         <li>Multi-currency settlement</li>
         <li>30-day free trial</li>
       </ul>
+      <div class="pricing-actions">
+        <a class="cta cta-primary"
+           href="https://api.lightningenable.com/Checkout?tier=l402microtransactions"
+           target="_blank" rel="noopener noreferrer">Start free trial</a>
+        <a class="cta-btc"
+           href="https://refinedelement.com/checkout/lightning-enable/bitcoin"
+           target="_blank" rel="noopener noreferrer"
+           title="Pay annually with Bitcoin and save 10%">
+          ⚡ Pay with Bitcoin — 10% off
+        </a>
+      </div>
     </div>
   </div>
 
-  <div class="pricing-cta">
-    <a class="cta cta-primary" href="https://api.lightningenable.com/dashboard" target="_blank" rel="noopener">Start free trial</a>
-    <p class="pricing-fineprint">
-      Lightning Enable does not hold funds. Your chosen settlement provider
-      (Strike or OpenNode) custodies every payment.
-    </p>
-  </div>
+  <p class="pricing-fineprint">
+    Lightning Enable does not hold funds. Your chosen settlement provider
+    (Strike or OpenNode) custodies every payment.
+  </p>
 </section>
 
 <!-- ─── Footer ─── -->
 <footer class="footer">
   <div class="footer-line">
-    Lightning Enable, LLC · API middleware for agentic commerce
+    Lightning Enable is a product of
+    <a href="https://refinedelement.com" target="_blank" rel="noopener noreferrer">Refined Element, LLC</a>,
+    software consultancy, Orlando&nbsp;FL.
   </div>
   <div class="footer-links">
-    <a href="https://api.lightningenable.com/dashboard" target="_blank" rel="noopener">Dashboard</a>
-    <a href="https://docs.lightningenable.com" target="_blank" rel="noopener">Docs</a>
-    <a href="https://lightningenable.com" target="_blank" rel="noopener">Company</a>
+    <a href="https://api.lightningenable.com/dashboard" target="_blank" rel="noopener noreferrer">Dashboard</a>
+    <a href="https://docs.lightningenable.com" target="_blank" rel="noopener noreferrer">Docs</a>
+    <a href="https://api.lightningenable.com/Checkout?tier=individual" target="_blank" rel="noopener noreferrer">Start free trial</a>
   </div>
 </footer>
 
