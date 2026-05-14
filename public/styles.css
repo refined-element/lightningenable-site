@@ -44,6 +44,62 @@ body {
 a { color: var(--bolt); text-decoration: none; }
 a:hover { text-decoration: underline; }
 
+/* ─── Site header (brand + nav) ───────────────────────────── */
+.site-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 1.25rem var(--gutter);
+  gap: 1rem;
+  position: relative;
+  z-index: 10;
+  /* Subtle bottom hairline so the brand visually anchors above the hero
+     without dominating it. The hero radial-gradient overlay still bleeds
+     through the transparent background. */
+  border-bottom: 1px solid transparent;
+}
+.site-brand {
+  display: inline-flex;
+  align-items: center;
+  text-decoration: none;
+}
+.site-brand:hover { text-decoration: none; }
+.site-logo {
+  height: clamp(28px, 4.5vw, 38px);
+  width: auto;
+  display: block;
+}
+.site-nav {
+  display: flex;
+  align-items: center;
+  gap: clamp(0.75rem, 2vw, 1.75rem);
+  font-size: 0.95rem;
+}
+.site-nav a {
+  color: var(--dim);
+  text-decoration: none;
+  font-weight: 500;
+  transition: color 0.15s;
+}
+.site-nav a:hover { color: var(--white); text-decoration: none; }
+.site-nav-cta {
+  background: var(--bolt);
+  color: var(--bg) !important;
+  padding: 0.55rem 1.1rem;
+  border-radius: 999px;
+  font-weight: 700;
+}
+.site-nav-cta:hover {
+  background: var(--bolt);
+  color: var(--bg) !important;
+  filter: brightness(1.08);
+}
+@media (max-width: 540px) {
+  /* Hide non-CTA nav links on narrow screens so the brand + trial CTA
+     stay on one row. */
+  .site-nav a:not(.site-nav-cta) { display: none; }
+}
+
 /* ─── Hero ───────────────────────────────────────────────── */
 .hero {
   min-height: 92vh;
@@ -497,16 +553,49 @@ pre.code {
   margin-right: 0.75rem;
   vertical-align: middle;
 }
-.pricing-cta {
-  text-align: center;
+.pricing-actions {
+  margin-top: 1.5rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.6rem;
+  align-items: stretch;
+}
+.pricing-actions .cta-primary {
+  justify-content: center;
+  width: 100%;
+}
+/* Secondary "Pay with Bitcoin — 10% off" CTA. Subtler than the Stripe
+   primary but still on-brand: orange accent, transparent background,
+   sized to sit naturally under the primary trial button. */
+.cta-btc {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.4rem;
+  padding: 0.65rem 1.1rem;
+  border-radius: 999px;
+  background: transparent;
+  border: 1px solid var(--bolt);
+  color: var(--bolt);
+  font-weight: 600;
+  font-size: 0.9rem;
+  text-decoration: none;
+  transition: background 0.15s, color 0.15s, transform 0.15s;
+}
+.cta-btc:hover {
+  background: var(--bolt-soft);
+  color: var(--bolt);
+  text-decoration: none;
+  transform: translateY(-1px);
 }
 .pricing-fineprint {
-  margin-top: 1.25rem;
+  margin-top: 2rem;
   color: var(--dim-2);
   font-size: 0.85rem;
   max-width: 50ch;
   margin-left: auto;
   margin-right: auto;
+  text-align: center;
 }
 
 /* ─── Footer ──────────────────────────────────────── */
