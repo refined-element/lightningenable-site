@@ -53,10 +53,8 @@ a:hover { text-decoration: underline; }
   gap: 1rem;
   position: relative;
   z-index: 10;
-  /* Subtle bottom hairline so the brand visually anchors above the hero
-     without dominating it. The hero radial-gradient overlay still bleeds
-     through the transparent background. */
-  border-bottom: 1px solid transparent;
+  /* No bottom border — the hero's radial-gradient overlay just below
+     visually separates the header without needing a hairline. */
 }
 .site-brand {
   display: inline-flex;

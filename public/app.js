@@ -130,6 +130,11 @@
     // Kraken — fail-loud, no hardcoded fallback). If the rate fetch
     // failed at page load, render the sat count only and a clear
     // "(USD price unavailable)" note — never a fake dollar value.
+    // All interpolated values are routed through escapeHtml() before
+    // being assembled into innerHTML — even server-controlled fields
+    // (totalMs/totalSats) and the BTC source string are escaped on
+    // principle so a future regression in the upstream can't open an
+    // XSS hole here.
     const totalLine = document.createElement("div");
     totalLine.className = "trace-summary";
     const btc = window.__BTC_RATE__;
@@ -140,14 +145,16 @@
         const formatted = usd < 0.01
           ? `$${usd.toFixed(6)}`
           : `$${usd.toFixed(4)}`;
-        usdSegment = `(≈ ${formatted} at $${Math.round(btc.rate).toLocaleString()}/BTC via ${btc.source})`;
+        usdSegment = `(≈ ${escapeHtml(formatted)} at $${escapeHtml(Math.round(btc.rate).toLocaleString())}/BTC via ${escapeHtml(btc.source)})`;
       } else {
         usdSegment = `(USD price unavailable)`;
       }
     }
+    const safeMs = escapeHtml(String(data.totalMs));
+    const safeSats = escapeHtml(String(data.totalSats ?? "?"));
     totalLine.innerHTML = `
-      <strong>Done in ${data.totalMs} ms.</strong>
-      Spent ${data.totalSats ?? "?"} sat
+      <strong>Done in ${safeMs} ms.</strong>
+      Spent ${safeSats} sat
       ${usdSegment}
     `;
     elTrace.appendChild(totalLine);

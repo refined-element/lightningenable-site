@@ -5,7 +5,7 @@
  * BitcoinPriceService (CoinGecko, Coinbase, Kraken in parallel,
  * first-success wins, NO hardcoded fallback). The demo refuses to display
  * a fake rate — if every source fails, the client gets a 503 and the
- * trace footer renders "$— (price unavailable)" instead of a stale
+ * trace footer renders "(USD price unavailable)" instead of a stale
  * hardcoded number.
  *
  * Cached at the edge for 60 seconds (`Cache-Control: s-maxage=60`) plus
@@ -20,17 +20,23 @@
 
 const PER_SOURCE_TIMEOUT_MS = 5000;
 
-async function fetchWithTimeout(url, opts = {}, timeoutMs = PER_SOURCE_TIMEOUT_MS) {
-    const controller = new AbortController();
-    const timer = setTimeout(() => controller.abort(), timeoutMs);
+// Compose a per-source timeout signal with an external "winner" signal
+// so that the moment one upstream succeeds, the other two in-flight
+// requests are aborted instead of left to run to completion. Saves
+// serverless execution time and avoids unnecessary load on the upstreams
+// that lost the race.
+async function fetchWithTimeout(url, externalSignal, timeoutMs = PER_SOURCE_TIMEOUT_MS) {
+    const timeoutCtrl = new AbortController();
+    const timer = setTimeout(() => timeoutCtrl.abort(), timeoutMs);
+    const signal = externalSignal
+        ? AbortSignal.any([timeoutCtrl.signal, externalSignal])
+        : timeoutCtrl.signal;
     try {
         return await fetch(url, {
-            ...opts,
-            signal: controller.signal,
+            signal,
             headers: {
                 "User-Agent": "LightningEnable-Demo/1.0",
                 "Accept": "application/json",
-                ...(opts.headers || {}),
             },
         });
     } finally {
@@ -38,9 +44,10 @@ async function fetchWithTimeout(url, opts = {}, timeoutMs = PER_SOURCE_TIMEOUT_M
     }
 }
 
-async function fetchCoinGecko() {
+async function fetchCoinGecko(externalSignal) {
     const res = await fetchWithTimeout(
-        "https://api.coingecko.com/api/v3/simple/price?ids=bitcoin&vs_currencies=usd"
+        "https://api.coingecko.com/api/v3/simple/price?ids=bitcoin&vs_currencies=usd",
+        externalSignal
     );
     if (!res.ok) throw new Error(`CoinGecko HTTP ${res.status}`);
     const j = await res.json();
@@ -51,9 +58,10 @@ async function fetchCoinGecko() {
     return rate;
 }
 
-async function fetchCoinbase() {
+async function fetchCoinbase(externalSignal) {
     const res = await fetchWithTimeout(
-        "https://api.coinbase.com/v2/prices/BTC-USD/spot"
+        "https://api.coinbase.com/v2/prices/BTC-USD/spot",
+        externalSignal
     );
     if (!res.ok) throw new Error(`Coinbase HTTP ${res.status}`);
     const j = await res.json();
@@ -65,9 +73,10 @@ async function fetchCoinbase() {
     return rate;
 }
 
-async function fetchKraken() {
+async function fetchKraken(externalSignal) {
     const res = await fetchWithTimeout(
-        "https://api.kraken.com/0/public/Ticker?pair=XBTUSD"
+        "https://api.kraken.com/0/public/Ticker?pair=XBTUSD",
+        externalSignal
     );
     if (!res.ok) throw new Error(`Kraken HTTP ${res.status}`);
     const j = await res.json();
@@ -88,20 +97,28 @@ async function fetchKraken() {
 }
 
 async function firstSuccessful() {
-    // Race all three. Promise.any resolves with the first fulfillment;
-    // if every promise rejects, it rejects with AggregateError carrying
-    // the per-source reasons — useful for the 503 response body.
+    // Shared "winner" abort controller — aborted on first success so the
+    // other two in-flight upstream fetches are cancelled, saving
+    // serverless runtime and upstream load. AbortError thrown by losing
+    // siblings is caught and discarded (expected cancellation).
+    const winnerCtrl = new AbortController();
     const sources = [
-        ["CoinGecko", fetchCoinGecko()],
-        ["Coinbase", fetchCoinbase()],
-        ["Kraken", fetchKraken()],
+        ["CoinGecko", fetchCoinGecko],
+        ["Coinbase", fetchCoinbase],
+        ["Kraken", fetchKraken],
     ];
-    const labelled = sources.map(([name, p]) =>
-        p.then((rate) => ({ rate, source: name }))
+    const labelled = sources.map(([name, fn]) =>
+        fn(winnerCtrl.signal)
+            .then((rate) => ({ rate, source: name }))
             .catch((err) => Promise.reject({ source: name, message: err?.message || String(err) }))
     );
     try {
-        return await Promise.any(labelled);
+        const winner = await Promise.any(labelled);
+        // Cancel losing siblings — their fetches are still pending. The
+        // AbortError they'll throw is swallowed by their .catch() above
+        // (already a rejection), so this doesn't surface as an error.
+        winnerCtrl.abort();
+        return winner;
     } catch (agg) {
         const failures = (agg?.errors || []).map(
             (e) => `${e?.source || "?"}: ${e?.message || "unknown"}`
