@@ -1,0 +1,16 @@
+{
+  "$schema": "https://openapi.vercel.sh/vercel.json",
+  "functions": {
+    "api/premium/weather.js": { "maxDuration": 10 },
+    "api/premium/btc-price.js": { "maxDuration": 10 },
+    "api/run-agent.js": { "maxDuration": 30 }
+  },
+  "headers": [
+    {
+      "source": "/api/premium/(.*)",
+      "headers": [
+        { "key": "Cache-Control", "value": "no-store" }
+      ]
+    }
+  ]
+}

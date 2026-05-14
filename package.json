@@ -1,0 +1,23 @@
+{
+  "name": "lightningenable-demo",
+  "version": "0.1.0",
+  "description": "Live agentic L402 demo for Lightning Enable. Static landing page + two Vercel serverless functions: a merchant endpoint that issues 402 Payment Required challenges, and an agent function that buys from it over real Lightning.",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "dev": "vercel dev",
+    "deploy": "vercel --prod",
+    "deploy:preview": "vercel"
+  },
+  "dependencies": {
+    "l402-server": "^0.1.0",
+    "l402-requests": "^0.1.0"
+  },
+  "devDependencies": {
+    "@types/node": "^22.0.0",
+    "vercel": "^53.0.0"
+  },
+  "engines": {
+    "node": ">=20"
+  }
+}

@@ -1,0 +1,268 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Lightning Enable — Add Lightning revenue to your API</title>
+<meta name="description" content="Monetize any HTTP API with per-request Lightning payments. AI agents pay in sats. Drop in three lines, no per-transaction fees." />
+<meta property="og:title" content="Lightning Enable — Add Lightning revenue to your API" />
+<meta property="og:description" content="Drop three lines into your API and let AI agents pay you per request in Lightning. Real demo, real Bitcoin, ≈ $0.0008 per call." />
+<meta property="og:type" content="website" />
+<meta property="og:url" content="https://demo.lightningenable.com" />
+<meta name="twitter:card" content="summary_large_image" />
+<link rel="icon" type="image/svg+xml" href="favicon.svg" />
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;700;900&family=JetBrains+Mono:wght@400;700&display=swap" rel="stylesheet" />
+<link rel="stylesheet" href="styles.css" />
+</head>
+<body>
+
+<!-- ─── Hero ─── -->
+<header class="hero">
+  <div class="bolt-mark" aria-hidden="true">⚡</div>
+  <h1 class="hero-title">
+    Add <span class="highlight">Lightning revenue</span><br />
+    to your API.
+  </h1>
+  <p class="hero-sub">
+    Drop three lines of code. Let AI agents pay you per request in Bitcoin
+    over the Lightning Network. No new contracts, no per-transaction fees,
+    no replacing what you already charge.
+  </p>
+  <div class="hero-ctas">
+    <a href="#try" class="cta cta-primary">⚡ Run the agent</a>
+    <a href="#build" class="cta cta-ghost">View the code</a>
+  </div>
+  <div class="hero-meta">
+    Real Lightning · ≈ $0.0008 per call · ~1 second settlement
+  </div>
+</header>
+
+<!-- ─── Try it ─── -->
+<section id="try" class="section">
+  <h2 class="section-title">Watch an agent buy from this API.</h2>
+  <p class="section-lede">
+    The button below triggers an autonomous agent on our server. It calls the
+    paid endpoint you choose, pays the resulting Lightning invoice from a
+    pre-funded wallet, and retries with the L402 credential — exactly what
+    your customers' agents will do against <em>your</em> API once you
+    integrate.
+  </p>
+
+  <div class="try-card">
+    <div class="try-row">
+      <label class="endpoint-pick" data-endpoint="weather">
+        <input type="radio" name="endpoint" value="weather" checked />
+        <span class="endpoint-label">
+          <span class="endpoint-name">Weather forecast</span>
+          <span class="endpoint-price">1 sat</span>
+        </span>
+      </label>
+      <label class="endpoint-pick" data-endpoint="btc-price">
+        <input type="radio" name="endpoint" value="btc-price" />
+        <span class="endpoint-label">
+          <span class="endpoint-name">Bitcoin price</span>
+          <span class="endpoint-price">1 sat</span>
+        </span>
+      </label>
+    </div>
+
+    <div class="param-row" id="param-weather">
+      <label>City:
+        <input type="text" id="input-city" value="Miami" maxlength="60" autocomplete="off" />
+      </label>
+    </div>
+
+    <div class="param-row hidden" id="param-btc-price">
+      <label>Currency:
+        <select id="input-currency">
+          <option value="USD">USD — US Dollar</option>
+          <option value="EUR">EUR — Euro</option>
+          <option value="GBP">GBP — British Pound</option>
+          <option value="JPY">JPY — Japanese Yen</option>
+          <option value="CAD">CAD — Canadian Dollar</option>
+          <option value="AUD">AUD — Australian Dollar</option>
+          <option value="CHF">CHF — Swiss Franc</option>
+        </select>
+      </label>
+    </div>
+
+    <button id="run-agent" class="cta cta-primary cta-block">⚡ Run the agent</button>
+
+    <div id="trace" class="trace hidden" aria-live="polite"></div>
+    <pre id="result" class="result hidden" aria-live="polite"></pre>
+  </div>
+</section>
+
+<!-- ─── Why ─── -->
+<section class="section section-why">
+  <h2 class="section-title">An additional revenue stream — not a replacement.</h2>
+  <ul class="why-list">
+    <li>
+      <strong>Keep your existing pricing.</strong>
+      Subscriptions, tiered rate limits, API keys — all unchanged.
+      Lightning per-request runs alongside on the same endpoints.
+    </li>
+    <li>
+      <strong>Earn from buyers that don't have credit cards.</strong>
+      AI agents, MCP clients, autonomous workflows — they can't use Stripe,
+      but they can pay sats. Capture revenue from a market that didn't
+      exist three years ago.
+    </li>
+    <li>
+      <strong>Settles in seconds. Final.</strong>
+      No chargebacks, no 30-day Stripe hold, no card-network 2.9% cut.
+      Money's in your provider account on the same call.
+    </li>
+    <li>
+      <strong>You keep every sat your customers pay.</strong>
+      Lightning Enable charges a flat monthly subscription, not a percentage.
+      One million 1-sat calls earn you 1,000,000 sats. The whole thing.
+    </li>
+  </ul>
+</section>
+
+<!-- ─── Build it ─── -->
+<section id="build" class="section">
+  <h2 class="section-title">Three lines, your language.</h2>
+  <p class="section-lede">
+    The middleware is a tiny wrapper around our hosted producer API. Pick
+    your stack, install one package, gate a route with an attribute or
+    a config line.
+  </p>
+
+  <div class="tabs">
+    <button class="tab active" data-tab="dotnet">.NET</button>
+    <button class="tab" data-tab="node">Node</button>
+    <button class="tab tab-disabled" data-tab="python" disabled>Python — coming soon</button>
+  </div>
+
+  <pre class="code" data-tab-content="dotnet"><code><span class="c-comment">// .NET 8 / ASP.NET Core minimal API</span>
+<span class="c-key">using</span> L402Server.AspNetCore;
+
+builder.Services.<span class="c-fn">AddL402AspNetCore</span>(opts =&gt;
+    opts.ApiKey = builder.Configuration[<span class="c-str">"LightningEnable:ApiKey"</span>]);
+app.<span class="c-fn">UseL402</span>();
+
+app.<span class="c-fn">MapGet</span>(<span class="c-str">"/api/data"</span>, () =&gt; data)
+    .<span class="c-fn">WithMetadata</span>(<span class="c-key">new</span> <span class="c-type">L402Attribute</span> { PriceSats = <span class="c-num">100</span> });</code></pre>
+
+  <pre class="code hidden" data-tab-content="node"><code><span class="c-comment">// Node + Express</span>
+<span class="c-key">import</span> { l402 } <span class="c-key">from</span> <span class="c-str">"l402-express"</span>;
+
+app.<span class="c-fn">use</span>(<span class="c-str">"/api/premium"</span>, <span class="c-fn">l402</span>({
+  apiKey: process.env.LIGHTNING_ENABLE_API_KEY,
+  priceSats: <span class="c-num">100</span>,
+}));
+
+app.<span class="c-fn">get</span>(<span class="c-str">"/api/premium/data"</span>, (req, res) =&gt; res.<span class="c-fn">json</span>(data));</code></pre>
+
+  <div class="install-row">
+    <span class="install-label">Install:</span>
+    <code class="install-cmd" data-install="dotnet">dotnet add package L402Server.AspNetCore</code>
+    <code class="install-cmd hidden" data-install="node">npm install l402-express</code>
+  </div>
+  <div class="install-row install-repo">
+    <span class="install-label">Reference app:</span>
+    <a class="repo-link" data-install="dotnet" href="https://github.com/refined-element/l402-example-aspnet" target="_blank" rel="noopener">github.com/refined-element/l402-example-aspnet</a>
+    <a class="repo-link hidden" data-install="node" href="https://github.com/refined-element/l402-example-node" target="_blank" rel="noopener">github.com/refined-element/l402-example-node</a>
+  </div>
+</section>
+
+<!-- ─── Dashboard ─── -->
+<section class="section section-dashboard">
+  <h2 class="section-title">Configured from your dashboard.</h2>
+  <p class="section-lede">
+    Set per-endpoint pricing, watch payments arrive in real time, track
+    your sats stream — without touching code.
+  </p>
+
+  <div class="dashboard-grid">
+    <figure class="dashboard-card">
+      <div class="dashboard-img dashboard-img-placeholder">
+        <span>Pricing tab screenshot</span>
+      </div>
+      <figcaption>
+        <strong>Per-endpoint pricing.</strong>
+        Different prices for different routes, no redeploy.
+      </figcaption>
+    </figure>
+    <figure class="dashboard-card">
+      <div class="dashboard-img dashboard-img-placeholder">
+        <span>Recent 402s screenshot</span>
+      </div>
+      <figcaption>
+        <strong>Live payment feed.</strong>
+        Every agent purchase, the moment it happens.
+      </figcaption>
+    </figure>
+    <figure class="dashboard-card">
+      <div class="dashboard-img dashboard-img-placeholder">
+        <span>Revenue summary screenshot</span>
+      </div>
+      <figcaption>
+        <strong>Revenue summary.</strong>
+        Sats earned by endpoint, by day, by agent.
+      </figcaption>
+    </figure>
+  </div>
+</section>
+
+<!-- ─── Pricing ─── -->
+<section id="pricing" class="section">
+  <h2 class="section-title">Pricing.</h2>
+  <p class="section-lede">
+    Lightning Enable is a flat-rate subscription. You keep 100% of the sats
+    your customers pay — we charge a monthly fee, not a percentage.
+  </p>
+
+  <div class="pricing-grid">
+    <div class="pricing-card">
+      <div class="pricing-name">Agentic Commerce — Individual</div>
+      <div class="pricing-amount">$99<span class="pricing-period">/mo</span></div>
+      <ul class="pricing-features">
+        <li>Unlimited L402 endpoints</li>
+        <li>Strike <em>or</em> OpenNode as settlement provider</li>
+        <li>Per-endpoint pricing</li>
+        <li>Live dashboard + payment feed</li>
+        <li>30-day free trial</li>
+      </ul>
+    </div>
+    <div class="pricing-card pricing-card-business">
+      <div class="pricing-name">Agentic Commerce — Business</div>
+      <div class="pricing-amount">$299<span class="pricing-period">/mo</span></div>
+      <ul class="pricing-features">
+        <li>Everything in Individual</li>
+        <li>Priority support</li>
+        <li>Higher rate limits</li>
+        <li>Multi-currency settlement</li>
+        <li>30-day free trial</li>
+      </ul>
+    </div>
+  </div>
+
+  <div class="pricing-cta">
+    <a class="cta cta-primary" href="https://api.lightningenable.com/dashboard" target="_blank" rel="noopener">Start free trial</a>
+    <p class="pricing-fineprint">
+      Lightning Enable does not hold funds. Your chosen settlement provider
+      (Strike or OpenNode) custodies every payment.
+    </p>
+  </div>
+</section>
+
+<!-- ─── Footer ─── -->
+<footer class="footer">
+  <div class="footer-line">
+    Lightning Enable, LLC · API middleware for agentic commerce
+  </div>
+  <div class="footer-links">
+    <a href="https://api.lightningenable.com/dashboard" target="_blank" rel="noopener">Dashboard</a>
+    <a href="https://docs.lightningenable.com" target="_blank" rel="noopener">Docs</a>
+    <a href="https://lightningenable.com" target="_blank" rel="noopener">Company</a>
+  </div>
+</footer>
+
+<script src="app.js" defer></script>
+</body>
+</html>
