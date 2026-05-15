@@ -100,11 +100,20 @@ jobs:
 
             echo "❌ Attempt ${attempt} failed (http=${http_status:-?}, ok=${ok}, totalSats=${totalSats}, l402valid=${l402valid})"
             # Surface the agent's own error string if there was one,
-            # so the failure email tells the user *why* (insufficient
-            # balance / NWC timeout / 502 from LE / etc.)
+            # so the failure issue body tells the user *why* (insufficient
+            # balance / NWC timeout / 502 from LE / etc.) Also export it
+            # to GITHUB_ENV so the failure-notification step below can
+            # include the real diagnostic in the issue body instead of a
+            # generic "smoke failed" message.
             error=$(echo "$body" | jq -r '.error // ""' 2>/dev/null || true)
             if [ -n "$error" ]; then
               echo "Agent error: $error"
+              # Single-line truncate so newlines / special chars don't
+              # break the heredoc in the failure step.
+              clean_error=$(printf '%s' "$error" | tr '\n' ' ' | cut -c1-300)
+              echo "LAST_AGENT_ERROR=$clean_error" >> "$GITHUB_ENV"
+              echo "LAST_HTTP_STATUS=${http_status:-?}" >> "$GITHUB_ENV"
+              echo "LAST_ATTEMPT=${attempt}" >> "$GITHUB_ENV"
             fi
 
             if [ "$attempt" -lt 2 ]; then
@@ -126,12 +135,25 @@ jobs:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
           set -euo pipefail
-          TITLE="🚨 Daily demo smoke test failed"
-          existing=$(gh issue list --repo "${GITHUB_REPOSITORY}" --state open --search "in:title \"$TITLE\"" --json number --jq '.[0].number' 2>/dev/null || echo "")
+          TITLE="Daily demo smoke test failed"
+          # `// empty` makes jq emit an empty string instead of the
+          # literal "null" when no open issue matches the search —
+          # without this, [ -n "$existing" ] below would be true on
+          # the string "null" and try to comment on a non-existent
+          # issue. The leading-emoji-stripped title also dodges
+          # GitHub's issue-search tokenizer being finicky with
+          # non-ASCII characters; the body still mentions the
+          # alert visually.
+          existing=$(gh issue list --repo "${GITHUB_REPOSITORY}" --state open --search "in:title \"$TITLE\"" --json number --jq '.[0].number // empty' 2>/dev/null || echo "")
+          AGENT_ERROR="${LAST_AGENT_ERROR:-(no agent .error field — likely HTTP-level failure or non-JSON response)}"
+          HTTP_STATUS="${LAST_HTTP_STATUS:-?}"
           BODY=$(cat <<EOF
-          The daily demo smoke test failed on $(date -u +%FT%TZ).
+          🚨 The daily demo smoke test failed on $(date -u +%FT%TZ).
 
-          Run: ${GITHUB_SERVER_URL}/${GITHUB_REPOSITORY}/actions/runs/${GITHUB_RUN_ID}
+          **Run:** ${GITHUB_SERVER_URL}/${GITHUB_REPOSITORY}/actions/runs/${GITHUB_RUN_ID}
+
+          **Last attempt:** HTTP ${HTTP_STATUS}
+          **Agent error:** ${AGENT_ERROR}
 
           Likely causes (in order of frequency):
           1. Demo CoinOS wallet drained — refill it or wait for the daily refill cron
