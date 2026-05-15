@@ -32,14 +32,23 @@ name: Daily Demo Smoke Test
 
 on:
   schedule:
-    # 12:00 UTC daily — well within US business hours so the user
-    # sees the failure email at a reasonable time. Cron syntax is
-    # minute, hour, day-of-month, month, day-of-week.
-    - cron: '0 12 * * *'
+    # 12:07 UTC daily. The :07 offset avoids GitHub Actions' top-of-
+    # hour scheduling load spikes that can delay or drop runs at :00.
+    # Cron syntax is minute, hour, day-of-month, month, day-of-week.
+    - cron: '7 12 * * *'
   workflow_dispatch:
     # Manual trigger button in the Actions UI for ad-hoc verification
     # (e.g. after refilling the NWC wallet, or to sanity-check after
     # a deploy).
+
+# Serialize across triggers so a manual workflow_dispatch can't
+# race a scheduled run. Without this, two overlapping failures could
+# both see "no existing issue" and both open a new one (duplicate
+# alerts). `cancel-in-progress: false` keeps the in-flight run
+# alive and just queues the new trigger behind it.
+concurrency:
+  group: daily-smoke
+  cancel-in-progress: false
 
 permissions:
   contents: read
@@ -102,19 +111,25 @@ jobs:
             # Surface the agent's own error string if there was one,
             # so the failure issue body tells the user *why* (insufficient
             # balance / NWC timeout / 502 from LE / etc.) Also export it
-            # to GITHUB_ENV so the failure-notification step below can
-            # include the real diagnostic in the issue body instead of a
-            # generic "smoke failed" message.
+            # to GITHUB_ENV on EVERY failed attempt — including ones
+            # where the response had no JSON `.error` — so the
+            # notification step always reports THIS attempt's metadata,
+            # not stale data from an earlier attempt that happened to
+            # have a JSON body.
             error=$(echo "$body" | jq -r '.error // ""' 2>/dev/null || true)
-            if [ -n "$error" ]; then
-              echo "Agent error: $error"
-              # Single-line truncate so newlines / special chars don't
-              # break the heredoc in the failure step.
-              clean_error=$(printf '%s' "$error" | tr '\n' ' ' | cut -c1-300)
-              echo "LAST_AGENT_ERROR=$clean_error" >> "$GITHUB_ENV"
-              echo "LAST_HTTP_STATUS=${http_status:-?}" >> "$GITHUB_ENV"
-              echo "LAST_ATTEMPT=${attempt}" >> "$GITHUB_ENV"
+            # Synthesize a placeholder if the response isn't JSON or
+            # has no error field — better than letting the next attempt
+            # potentially overwrite-only-if-non-empty leave stale data.
+            if [ -z "$error" ]; then
+              error="(no agent .error in body; HTTP=${http_status:-?}, likely Vercel/network failure)"
             fi
+            echo "Agent error: $error"
+            # Single-line truncate so newlines / special chars don't
+            # break the body in the failure step.
+            clean_error=$(printf '%s' "$error" | tr '\n' ' ' | cut -c1-300)
+            echo "LAST_AGENT_ERROR=$clean_error" >> "$GITHUB_ENV"
+            echo "LAST_HTTP_STATUS=${http_status:-?}" >> "$GITHUB_ENV"
+            echo "LAST_ATTEMPT=${attempt}" >> "$GITHUB_ENV"
 
             if [ "$attempt" -lt 2 ]; then
               echo "Sleeping 60s before retry..."
