@@ -186,36 +186,53 @@ app.<span class="c-fn">get</span>(<span class="c-str">"/api/premium/data"</span>
 <section class="section section-dashboard">
   <h2 class="section-title">Configured from your dashboard.</h2>
   <p class="section-lede">
-    Set per-endpoint pricing, watch payments arrive in real time, track
-    your sats stream — without touching code.
+    Set per-endpoint pricing, watch revenue accrue in real Bitcoin, and
+    manage every API you've monetized — without touching code.
   </p>
 
   <div class="dashboard-grid">
     <figure class="dashboard-card">
-      <div class="dashboard-img dashboard-img-placeholder">
-        <span>Pricing tab screenshot</span>
-      </div>
+      <img src="dashboard/home.png"
+           alt="Lightning Enable dashboard home — total proxies, active proxies, total requests, total revenue in sats, and a Recent Proxies table"
+           class="dashboard-img"
+           loading="lazy"
+           width="1200" height="1014" />
+      <figcaption>
+        <strong>One-screen overview.</strong>
+        Total revenue, request volume, and your active APIs in a single view.
+      </figcaption>
+    </figure>
+    <figure class="dashboard-card">
+      <img src="dashboard/proxies.png"
+           alt="Lightning Enable proxies list — every API you've monetized with its default price, status, and request count"
+           class="dashboard-img"
+           loading="lazy"
+           width="1200" height="1023" />
+      <figcaption>
+        <strong>Every API in one place.</strong>
+        List, search, and manage everything you've monetized — at any scale.
+      </figcaption>
+    </figure>
+    <figure class="dashboard-card">
+      <img src="dashboard/overview.png"
+           alt="Lightning Enable proxy overview tab — proxy information, statistics, quick actions, and a copy-paste integration snippet"
+           class="dashboard-img"
+           loading="lazy"
+           width="1200" height="1023" />
+      <figcaption>
+        <strong>Per-API ops.</strong>
+        Stats, integration URL, and lifecycle controls for every endpoint.
+      </figcaption>
+    </figure>
+    <figure class="dashboard-card">
+      <img src="dashboard/pricing.png"
+           alt="Lightning Enable proxy pricing tab — every endpoint with its individual sat price, manifest visibility, and L402 status"
+           class="dashboard-img"
+           loading="lazy"
+           width="1200" height="1030" />
       <figcaption>
         <strong>Per-endpoint pricing.</strong>
-        Different prices for different routes, no redeploy.
-      </figcaption>
-    </figure>
-    <figure class="dashboard-card">
-      <div class="dashboard-img dashboard-img-placeholder">
-        <span>Recent 402s screenshot</span>
-      </div>
-      <figcaption>
-        <strong>Live payment feed.</strong>
-        Every agent purchase, the moment it happens.
-      </figcaption>
-    </figure>
-    <figure class="dashboard-card">
-      <div class="dashboard-img dashboard-img-placeholder">
-        <span>Revenue summary screenshot</span>
-      </div>
-      <figcaption>
-        <strong>Revenue summary.</strong>
-        Sats earned by endpoint, by day, by agent.
+        Different routes, different rates — set in the UI, applied at runtime.
       </figcaption>
     </figure>
   </div>
