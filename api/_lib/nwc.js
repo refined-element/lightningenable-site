@@ -267,6 +267,7 @@ export async function payViaNwc(nwcUrl, bolt11, { timeoutMs = 25_000 } = {}) {
     ws.on("error", (err) => {
       record("ws_error", { message: err?.message || String(err) });
       clearTimeout(timer);
+      try { ws.close(); } catch {}
       reject(errWithTrace(`WebSocket error on ${hostOf(relay)}: ${err?.message || err}`, trace));
     });
 
