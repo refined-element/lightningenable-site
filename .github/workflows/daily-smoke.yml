@@ -18,8 +18,10 @@ name: Daily Demo Smoke Test
 #   the live production deploy at demo.lightningenable.com. Asserts
 #   the response is ok:true, paid a non-zero amount of sats, and
 #   that the LE backend verified the L402 token on the retry hop.
-#   If any of that fails, the job fails — GitHub emails repo
-#   admins by default on the first failure of a scheduled workflow.
+#   On failure, an explicit step opens (or comments on) a GitHub
+#   Issue — this is more reliable than relying on default cron-
+#   failure email behavior, which only notifies the workflow's
+#   actor based on per-account notification settings.
 #
 # Why two attempts:
 #   NWC is occasionally flaky on relay round-trips (we've seen
@@ -41,6 +43,13 @@ on:
 
 permissions:
   contents: read
+  # `issues: write` required by the failure-notification step below
+  # so it can post/update a GitHub Issue. Issue creation reliably
+  # triggers notifications through every channel the operator has
+  # on (default repo-watch email, mobile push, etc.) — more reliable
+  # than the default cron-failure email which depends on per-account
+  # notification settings the operator may not have enabled.
+  issues: write
 
 jobs:
   smoke:
@@ -106,3 +115,40 @@ jobs:
 
           echo "::error::Daily smoke test failed both attempts. Demo agent flow is not working — check the demo CoinOS wallet balance, NWC connection, and the LIGHTNING_ENABLE_API_KEY Vercel env var."
           exit 1
+
+      # Reliable failure notification. `if: failure()` runs this step
+      # only when one of the prior steps exited non-zero. Reuses an
+      # existing open issue when one exists so a multi-day outage
+      # gets ONE issue with comments instead of N spam-issues.
+      - name: Open / update tracking issue on failure
+        if: failure()
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          set -euo pipefail
+          TITLE="🚨 Daily demo smoke test failed"
+          existing=$(gh issue list --repo "${GITHUB_REPOSITORY}" --state open --search "in:title \"$TITLE\"" --json number --jq '.[0].number' 2>/dev/null || echo "")
+          BODY=$(cat <<EOF
+          The daily demo smoke test failed on $(date -u +%FT%TZ).
+
+          Run: ${GITHUB_SERVER_URL}/${GITHUB_REPOSITORY}/actions/runs/${GITHUB_RUN_ID}
+
+          Likely causes (in order of frequency):
+          1. Demo CoinOS wallet drained — refill it or wait for the daily refill cron
+          2. NWC connection revoked/timed out — re-issue the NWC URL from CoinOS
+          3. LIGHTNING_ENABLE_API_KEY Vercel env var stale — rotate + update Vercel
+          4. LE producer API returning 5xx — check api.lightningenable.com/health
+          5. Vercel function crashed — check Vercel logs for the run-agent function
+          EOF
+          )
+          if [ -n "$existing" ]; then
+            gh issue comment "$existing" --repo "${GITHUB_REPOSITORY}" --body "$BODY"
+            echo "Commented on existing issue #$existing"
+          else
+            # Try with the smoke-failure label first; fall back to no
+            # label if the label doesn't exist (label creation isn't
+            # in scope here; admins can create it if they prefer).
+            gh issue create --repo "${GITHUB_REPOSITORY}" --title "$TITLE" --body "$BODY" --label "smoke-failure" 2>/dev/null \
+              || gh issue create --repo "${GITHUB_REPOSITORY}" --title "$TITLE" --body "$BODY"
+            echo "Opened new issue"
+          fi
