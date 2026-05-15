@@ -130,16 +130,54 @@ jobs:
             l402valid=$(echo "$body" | jq -r '.final.l402.valid // false' 2>/dev/null || echo "false")
             finalError=$(echo "$body" | jq -r '.final.error // ""' 2>/dev/null || echo "")
 
+            # Endpoint-specific data assertion. The endpoints can
+            # return HTTP 200 + ok=true + l402.valid=true + no
+            # final.error but with degraded payload fields (weather
+            # returning `temperature_f: null` and `conditions:
+            # "unknown"` when its upstream provider is partially
+            # broken, btc-price returning `price: null` if the
+            # expected currency key is absent). The L402 hop is
+            # healthy in those cases but the user-facing data is
+            # garbage. Each endpoint declares its own non-null
+            # signal:
+            #   weather   → final.temperature_f must be a number
+            #   btc-price → final.price must be a number
+            # `jq ... | grep -E '^-?[0-9]+(\.[0-9]+)?$'` is a cheap
+            # "is this a numeric literal?" test that rejects null,
+            # missing, and non-numeric values.
+            case "$ENDPOINT_KIND" in
+              weather)
+                data_field="final.temperature_f"
+                dataVal=$(echo "$body" | jq -r '.final.temperature_f // "missing"' 2>/dev/null || echo "missing")
+                ;;
+              btc-price)
+                data_field="final.price"
+                dataVal=$(echo "$body" | jq -r '.final.price // "missing"' 2>/dev/null || echo "missing")
+                ;;
+              *)
+                # If a future endpoint kind doesn't have a data
+                # assertion configured, fail loud rather than silently
+                # falling back to a weaker success criterion.
+                data_field="(unconfigured for endpoint kind '$ENDPOINT_KIND')"
+                dataVal="missing"
+                ;;
+            esac
+            dataValid="false"
+            if echo "$dataVal" | grep -Eq '^-?[0-9]+(\.[0-9]+)?$'; then
+              dataValid="true"
+            fi
+
             if [ "${http_status:-0}" = "200" ] \
                && [ "$ok" = "true" ] \
                && [ "$totalSats" -gt 0 ] 2>/dev/null \
                && [ "$l402valid" = "true" ] \
-               && [ -z "$finalError" ]; then
-              echo "✅ Attempt ${attempt} passed (${ENDPOINT_KIND}): ok=true, totalSats=${totalSats}, l402.valid=true, no final.error"
+               && [ -z "$finalError" ] \
+               && [ "$dataValid" = "true" ]; then
+              echo "✅ Attempt ${attempt} passed (${ENDPOINT_KIND}): ok=true, totalSats=${totalSats}, l402.valid=true, no final.error, ${data_field}=${dataVal}"
               exit 0
             fi
 
-            echo "❌ Attempt ${attempt} failed (endpoint=${ENDPOINT_KIND}, http=${http_status:-?}, ok=${ok}, totalSats=${totalSats}, l402valid=${l402valid}, finalError='${finalError}')"
+            echo "❌ Attempt ${attempt} failed (endpoint=${ENDPOINT_KIND}, http=${http_status:-?}, ok=${ok}, totalSats=${totalSats}, l402valid=${l402valid}, finalError='${finalError}', ${data_field}=${dataVal} dataValid=${dataValid})"
             # Surface the agent's own error string so the failure issue
             # body tells the user *why* (insufficient balance / NWC
             # timeout / 502 from LE / etc.) Cascade through the most-
@@ -165,15 +203,28 @@ jobs:
             if [ -n "$finalError" ]; then
               # Upstream provider failure — most actionable signal.
               error="upstream provider error after L402: ${finalError}"
+            elif [ "$dataValid" != "true" ]; then
+              # Degraded payload: HTTP 200 + L402 valid but the
+              # endpoint-specific data field is null/missing. Less
+              # severe than final.error (no explicit upstream error
+              # string) but still user-visible breakage.
+              error="degraded payload: ${data_field}=${dataVal} (endpoint ${ENDPOINT_KIND} returned HTTP 200 with no usable data; check the merchant's upstream provider)"
             elif [ -n "$agent_error" ]; then
               error="$agent_error"
             else
               error="(no agent .error or final.error in body; HTTP=${http_status:-?}, likely Vercel/network failure)"
             fi
             echo "Agent error: $error"
-            # Single-line truncate so newlines / special chars don't
-            # break the body in the failure step.
-            clean_error=$(printf '%s' "$error" | tr '\n' ' ' | cut -c1-300)
+            # Single-line, single-LF-safe truncate. `tr` strips both
+            # LF and CR — CR alone (or paired with LF) in an upstream
+            # error string would break the GITHUB_ENV file format
+            # (each entry must be on its own line; a stray CR inside
+            # the value can be interpreted as a record terminator by
+            # some parsers and would let an attacker inject another
+            # env var). Also strips control bytes < 0x20 except tab,
+            # belt-and-suspenders. `cut -c1-300` caps length so a
+            # giant error payload doesn't blow out the env file.
+            clean_error=$(printf '%s' "$error" | tr -d '\r\n' | tr -d '\000-\010\013-\037' | cut -c1-300)
             echo "LAST_AGENT_ERROR=$clean_error" >> "$GITHUB_ENV"
             echo "LAST_HTTP_STATUS=${http_status:-?}" >> "$GITHUB_ENV"
             echo "LAST_ATTEMPT=${attempt}" >> "$GITHUB_ENV"
@@ -265,7 +316,8 @@ jobs:
             "3. LIGHTNING_ENABLE_API_KEY Vercel env var stale — rotate + update Vercel" \
             "4. LE producer API returning 5xx — check api.lightningenable.com/health" \
             "5. Vercel function crashed — check Vercel logs for the run-agent function" \
-            "6. Upstream provider for \`${ENDPOINT_KIND}\` returned an error after the L402 hop (\`final.error\` present in the response) — check Vercel logs for the merchant endpoint, and the upstream provider's status page if available")
+            "6. Upstream provider for \`${ENDPOINT_KIND}\` returned an error after the L402 hop (\`final.error\` present in the response) — check Vercel logs for the merchant endpoint, and the upstream provider's status page if available" \
+            "7. Degraded payload — endpoint returned HTTP 200 with no \`final.error\`, but the expected data field (\`final.temperature_f\` for weather, \`final.price\` for btc-price) was null or missing. Same investigation path as #6 but the upstream may be returning a partial/stale response rather than an explicit error.")
           if [ -n "$existing" ]; then
             # Try to comment on the existing tracking issue. The
             # existing issue could be locked, deleted between
