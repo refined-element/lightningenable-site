@@ -60,6 +60,10 @@ const COOLDOWN_MS = 30_000;
 const ALLOWED_ORIGINS = new Set([
   "https://demo.lightningenable.com",
   "https://lightningenable.com",
+  "https://www.lightningenable.com",
+  // Local dev: `vercel dev` runs on http://localhost:3000 — without
+  // this entry the Referer check would reject every dev request.
+  "http://localhost:3000",
   // Vercel previews — wildcards aren't trivially supported in a Set,
   // so the check below also accepts *.vercel.app for the preview flow
 ]);
@@ -118,6 +122,13 @@ export default async function handler(req, res) {
   // map (acceptable — a determined attacker rotating IPs or waiting
   // for cold instances is bounded by the CoinOS wallet's own
   // daily-spend cap, which is the real defense).
+  //
+  // CHECK the cooldown here, but only RECORD it AFTER request
+  // validation succeeds. Otherwise malformed/unsupported requests
+  // (400/500) would burn the cooldown without doing any work — an
+  // attacker hammering with invalid bodies could force a long stretch
+  // of 429s on legitimate visitors sharing their IP (NAT, corporate
+  // gateways, mobile carrier IPs).
   const ip = clientIp(req);
   const now = Date.now();
   const last = ipLastSeen.get(ip);
@@ -131,16 +142,6 @@ export default async function handler(req, res) {
              "L402 endpoints have no such limit.",
     });
   }
-  ipLastSeen.set(ip, now);
-  // Light prune so the Map doesn't grow unbounded over a long-warm
-  // instance lifetime. Only sweeps when the Map gets larger than 1k
-  // entries; sweep removes anything older than 10× the cooldown.
-  if (ipLastSeen.size > 1000) {
-    const cutoff = now - COOLDOWN_MS * 10;
-    for (const [k, v] of ipLastSeen) {
-      if (v < cutoff) ipLastSeen.delete(k);
-    }
-  }
 
   // Parse body. Vercel auto-parses application/json into req.body.
   const body = req.body || {};
@@ -150,6 +151,19 @@ export default async function handler(req, res) {
       ok: false,
       error: `Unknown endpoint "${endpoint}". Expected one of: ${[...SUPPORTED_ENDPOINTS].join(", ")}`,
     });
+  }
+
+  // Validation passed — record the cooldown timestamp now so only
+  // legitimate work-doing requests consume it.
+  ipLastSeen.set(ip, now);
+  // Light prune so the Map doesn't grow unbounded over a long-warm
+  // instance lifetime. Only sweeps when the Map gets larger than 1k
+  // entries; sweep removes anything older than 10× the cooldown.
+  if (ipLastSeen.size > 1000) {
+    const cutoff = now - COOLDOWN_MS * 10;
+    for (const [k, v] of ipLastSeen) {
+      if (v < cutoff) ipLastSeen.delete(k);
+    }
   }
 
   const nwcUrl = process.env.DEMO_AGENT_NWC_URL;
