@@ -93,21 +93,25 @@ jobs:
           #   of its upstream fetch timeouts:
           #     2 × CoinOS fetch (10s each) + 1 × OpenNode fetch (15s)
           #     = 35s
-          #   plus a few seconds of overhead (auth, allowlist checks,
-          #   JSON serialization). The function is configured with
-          #   `maxDuration: 45` in vercel.json, so Vercel will kill it
-          #   at 45s.
-          #   Curl's --max-time must be LARGER than the function's
+          #   plus 5–10s of cold-start + sync overhead (auth check,
+          #   allowlist check, JSON parse/serialize, regex match,
+          #   crypto.timingSafeEqual). Worst-case wall-clock is ~45s
+          #   on a cold start. The function is configured with
+          #   `maxDuration: 60` in vercel.json (was 45; round-7 bumped
+          #   it up so cold-start runs don't get killed mid-flight
+          #   with a Vercel-side 504 that the workflow can't
+          #   distinguish from a real failure).
+          #   Curl's --max-time must outlive the function's
           #   maxDuration; otherwise a slow-but-eventually-successful
-          #   upstream causes curl to abort at 30s with exit 28, the
-          #   workflow records a `curl-failed` and opens an alert
+          #   upstream causes curl to abort first with exit 28, the
+          #   workflow records `curl-failed` and opens an alert
           #   issue — even though the withdrawal may have been
-          #   submitted to OpenNode after curl gave up. 60s leaves
+          #   submitted to OpenNode after curl gave up. 75s leaves
           #   15s of headroom over the function's max wall-clock.
           http_status=$(curl -sS -X POST https://demo.lightningenable.com/api/demo-refill \
             -H "Authorization: Bearer $ADMIN_KEY" \
             -H "Content-Type: application/json" \
-            --max-time 60 \
+            --max-time 75 \
             --write-out '%{http_code}' \
             --output "$body_file" \
             2>"$err_file") || http_status="curl-failed"
@@ -161,27 +165,45 @@ jobs:
           # consistently. The emoji is now in the body's first line for
           # the visual cue without confusing search.
           TITLE="Daily demo refill failed"
-          # Dedupe lookup, two layers:
-          #   1. Server-side --search narrows the candidate set, but
-          #      it's tokenized Lucene — anything containing the title
-          #      words could match.
-          #   2. Client-side jq filters for an EXACT title match so we
-          #      never comment on an unrelated open issue that happens
-          #      to share the words.
-          # Then we distinguish "lookup succeeded, no match" (create)
-          # from "lookup failed" (skip — opening a new issue on every
-          # transient GitHub/search blip is exactly the duplicate-alert
-          # behavior this dedupe step exists to prevent).
+          # Find a still-open issue with this exact title.
+          #
+          # Why not --search "in:title \"$TITLE\"":
+          #   Issue search is backed by GitHub's full-text index,
+          #   which is eventually consistent (a newly-opened issue
+          #   may not appear in search for a few seconds to minutes)
+          #   and only returns one page of results by default. A
+          #   queued manual workflow_dispatch racing a scheduled run
+          #   could "succeed" with no match before the scheduled
+          #   issue is indexed, opening a duplicate. Plain
+          #   `gh issue list` reads the open-issue table directly
+          #   and is strongly consistent. --limit 200 + client-side
+          #   jq filter for exact title. Mirrors the round-6 fix in
+          #   the sibling daily-smoke workflow.
+          #
+          # jq guards: `set -euo pipefail` is active, so an
+          # unguarded `... | jq ...` whose jq leg fails would abort
+          # this entire notification step. The jq invocation is
+          # wrapped in its own `if` so the assignment's exit status
+          # is captured; if jq errors (malformed JSON, missing
+          # field, anything), we fall through to the "lookup
+          # failed" branch — better to lose dedupe than to lose
+          # the alert.
           lookup_err="$(mktemp)"
-          if existing_json=$(gh issue list --repo "${GITHUB_REPOSITORY}" --state open --search "in:title \"$TITLE\"" --json number,title 2>"$lookup_err"); then
-            existing=$(printf '%s' "$existing_json" | jq -r --arg t "$TITLE" '[.[] | select(.title == $t)] | .[0].number // empty')
-            lookup_ok=1
+          jq_err="$(mktemp)"
+          lookup_ok=0
+          existing=""
+          if existing_json=$(gh issue list --repo "${GITHUB_REPOSITORY}" --state open --limit 200 --json number,title 2>"$lookup_err"); then
+            if existing=$(printf '%s' "$existing_json" | jq -r --arg t "$TITLE" '[.[] | select(.title == $t)] | .[0].number // empty' 2>"$jq_err"); then
+              lookup_ok=1
+            else
+              echo "::warning::jq failed parsing gh issue list output; will create issue without dedupe. stderr: $(cat "$jq_err")"
+              existing=""
+              lookup_ok=0
+            fi
           else
-            echo "::warning::gh issue list failed; skipping dedupe to avoid masking failure. stderr: $(cat "$lookup_err")"
-            existing=""
-            lookup_ok=0
+            echo "::warning::gh issue list failed; will create issue without dedupe. stderr: $(cat "$lookup_err")"
           fi
-          rm -f "$lookup_err"
+          rm -f "$lookup_err" "$jq_err"
 
           # Build the Markdown body line-by-line via printf '%s\n'.
           #

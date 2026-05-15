@@ -79,7 +79,20 @@ export default async function handler(req, res) {
     });
   }
   const auth = req.headers["authorization"] || "";
-  const presented = auth.startsWith("Bearer ") ? auth.slice("Bearer ".length) : "";
+  // RFC 7235 §2.1: the authentication scheme name is case-insensitive
+  // ("Bearer" / "bearer" / "BEARER" all mean the same scheme). The
+  // configured GitHub Actions caller sends "Bearer " exactly so this
+  // is unlikely to bite us in production, but tools used for manual
+  // testing (curl with various plugins, Postman, IDE HTTP-clients)
+  // sometimes normalize the scheme differently. A case-sensitive
+  // check is a footgun: presented would be the empty string, leading
+  // to a 401 that looks like a wrong-key failure when it's actually
+  // a wrong-case scheme. Test the prefix case-insensitively, then
+  // slice off whatever the caller actually wrote.
+  const SCHEME = "Bearer ";
+  const looksLikeBearer = auth.length >= SCHEME.length
+    && auth.slice(0, SCHEME.length).toLowerCase() === SCHEME.toLowerCase();
+  const presented = looksLikeBearer ? auth.slice(SCHEME.length) : "";
   // Constant-time compare. JS string `.length` reports UTF-16 code
   // units, NOT bytes — for a non-ASCII admin key, that would
   // mis-classify equal-length-as-bytes strings as unequal-length.
@@ -319,24 +332,14 @@ export default async function handler(req, res) {
     let parsed = null;
     try { parsed = JSON.parse(text); } catch {}
     if (!r.ok) {
-      // Look for OpenNode's "not enough balance" signal. They've
-      // historically used messages like "Insufficient available
-      // balance" / "Not enough balance" / "Account balance too low",
-      // and the response is typically HTTP 402 (Payment Required)
-      // or 400. We gate on (HTTP 400 OR 402) AND a permissive
-      // balance-related substring match. The HTTP-status pre-gate
-      // avoids treating 5xx/network errors as "skip" (those should
-      // alert), and the message-pattern check is now an OR over
-      // the common shapes so we tolerate small wording changes.
+      // Look for OpenNode's "not enough balance" signal vs. an
+      // auth/scope/etc failure. Detection logic is extracted into
+      // `isInsufficientBalanceError` (see bottom of file) so the
+      // regression cases that motivated tightening it (auth-failure
+      // shapes that contain "insufficient" but aren't balance-related)
+      // can be locked down by unit tests.
       const msg = (parsed?.message || text || "").toString();
-      const messageLooksLikeBalance =
-        /insufficient/i.test(msg) ||
-        /not enough/i.test(msg) ||
-        /balance.*low/i.test(msg) ||
-        /low.*balance/i.test(msg) ||
-        /no funds/i.test(msg);
-      const isInsufficientBalance = (r.status === 400 || r.status === 402)
-        && messageLooksLikeBalance;
+      const isInsufficientBalance = isInsufficientBalanceError(r.status, msg);
       if (isInsufficientBalance) {
         log("openNode_insufficient_balance");
         return res.status(200).json({
@@ -360,31 +363,13 @@ export default async function handler(req, res) {
       // proxy) — returning it in our JSON response would surface
       // the key to whatever called this endpoint.
       //
-      // Two-layer redaction:
-      //   1. Exact-match scrub of the configured openNodeKey (the
-      //      common case if anything ever echoed the raw header).
-      //   2. Generic scrub of any opaque token-shaped substring
-      //      longer than 32 chars that's contiguous safe-token
-      //      characters [A-Za-z0-9_-]+ (the shape of the
-      //      Authorization header value, and also of any common
-      //      base64/url-encoded variant). 32 is shorter than the
-      //      key itself but longer than any human-readable phrase
-      //      OpenNode would put in a `message` field, so we don't
-      //      accidentally redact normal error text.
-      //
-      // The 32-char cap on legitimate words is deliberate: looked at
-      // every OpenNode error message we've seen in practice, none
-      // are even close. If a future error message legitimately
-      // contained a long opaque value (a withdrawal id, a hash,
-      // etc.), it would get redacted too — that's acceptable for a
-      // failure-path detail string. Notification is the goal;
-      // diagnostic precision is secondary.
+      // Scrub credential-shaped data from echoed OpenNode error
+      // text. Implementation is extracted into `redactSensitive`
+      // (see bottom of file) so the diagnostic-preservation
+      // properties (UUIDs and SHA-256 hashes survive intact) can
+      // be pinned down by unit tests.
       const rawDetails = parsed?.message ?? text.slice(0, 300);
-      const safeDetails = typeof rawDetails === "string"
-        ? rawDetails
-            .split(openNodeKey).join("[redacted]")
-            .replace(/[A-Za-z0-9_-]{32,}/g, "[redacted]")
-        : rawDetails;
+      const safeDetails = redactSensitive(rawDetails, openNodeKey);
       return res.status(502).json({
         ok: false,
         error: `OpenNode withdrawal failed: HTTP ${r.status}`,
@@ -498,8 +483,75 @@ function parseBolt11Sats(bolt11) {
   }
 }
 
-// Named export for unit tests. `default` is the HTTP handler — Vercel
-// looks for it specifically — and we keep the parser private to the
-// runtime path by convention, but exposing it as a named export lets
-// the test file import it without duplicating the implementation.
-export { parseBolt11Sats };
+/**
+ * Pure predicate: is THIS OpenNode error response an "insufficient
+ * balance" condition we should silently skip (vs. a real failure
+ * that must alert)? Extracted from the inline handler logic so unit
+ * tests can pin down the regression cases that motivated the
+ * tightening — specifically that "Insufficient permissions" /
+ * "Insufficient API key scope" (auth/scope failures) do NOT match,
+ * even though they contain the word "insufficient."
+ *
+ * Returns true ONLY when:
+ *   1. HTTP status is 400 or 402 (OpenNode's typical "balance"
+ *      response codes), AND
+ *   2. The error message explicitly pairs a quantity word with
+ *      "balance" or "funds".
+ *
+ * @param {number} httpStatus
+ * @param {string} message
+ * @returns {boolean}
+ */
+function isInsufficientBalanceError(httpStatus, message) {
+  if (httpStatus !== 400 && httpStatus !== 402) return false;
+  const msg = (message ?? "").toString();
+  return (
+    /insufficient[^a-z0-9]+(available[^a-z0-9]+)?(balance|funds)/i.test(msg) ||
+    /not[^a-z0-9]+enough[^a-z0-9]+(balance|funds)/i.test(msg) ||
+    /(balance|funds)[^a-z0-9]+.*(too[^a-z0-9]+)?low/i.test(msg) ||
+    /low[^a-z0-9]+(balance|funds)/i.test(msg) ||
+    /no[^a-z0-9]+funds/i.test(msg)
+  );
+}
+
+/**
+ * Pure helper: scrub credential-shaped data from an echoed error
+ * detail string while preserving legitimate opaque identifiers
+ * (UUIDs, withdrawal IDs, payment hashes) so the operator can
+ * still trace the failed request in OpenNode's dashboard.
+ *
+ * Three layers:
+ *   1. Pre-extract UUIDs (canonical 8-4-4-4-12 hyphenated form).
+ *      These NEVER get redacted, regardless of other rules.
+ *   2. Exact-match scrub of `exactKey` (the configured OpenNode
+ *      API key — the common case if anything echoed it back).
+ *   3. Length-gated opaque-token scrub at 65+ chars. Above
+ *      UUIDs (36), above SHA-256 hashes (64), at-or-above
+ *      realistic API key lengths.
+ *
+ * @param {string} text — the detail string to sanitize
+ * @param {string} exactKey — the configured API key to scrub
+ * @returns {string}
+ */
+function redactSensitive(text, exactKey) {
+  if (typeof text !== "string") return text;
+  const UUID_RE = /\b[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}\b/g;
+  const uuidMatches = [];
+  const withoutUuids = text.replace(UUID_RE, (m) => {
+    uuidMatches.push(m);
+    return `\x00UUID${uuidMatches.length - 1}\x00`;
+  });
+  let redacted = withoutUuids;
+  if (exactKey) {
+    redacted = redacted.split(exactKey).join("[redacted]");
+  }
+  redacted = redacted.replace(/[A-Za-z0-9_-]{65,}/g, "[redacted]");
+  return redacted.replace(/\x00UUID(\d+)\x00/g, (_, i) => uuidMatches[Number(i)]);
+}
+
+// Named exports for unit tests. `default` is the HTTP handler — Vercel
+// looks for it specifically — and we keep these helpers private to
+// the runtime path by convention, but exposing them as named exports
+// lets the test file import them without duplicating the
+// implementation.
+export { parseBolt11Sats, isInsufficientBalanceError, redactSensitive };
