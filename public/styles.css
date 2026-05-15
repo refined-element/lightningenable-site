@@ -563,8 +563,9 @@ pre.code {
 .lightbox {
   /* Center the modal. The user-agent stylesheet for dialog:modal
      defaults to `position: fixed; inset: 0; margin: auto`, which
-     would center automatically — but our `* { margin: 0 }` reset at
-     the top of this file stomps the auto margin. Setting `inset` +
+     would center automatically — but our `*, *::before, *::after
+     { margin: 0; padding: 0; box-sizing: border-box }` reset at the
+     top of this file stomps the auto margin. Setting `inset` +
      `margin: auto` explicitly here overrides the reset and restores
      centering. (Without this, `inset: 0` still applies from the UA
      sheet but `margin: 0` from the reset pins the dialog to the
