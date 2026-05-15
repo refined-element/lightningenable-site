@@ -215,9 +215,27 @@ jobs:
             echo "Opened new issue"
           else
             # Lookup failed — we *don't* know whether an issue already
-            # exists. Skip creation; the workflow-failure visibility in
-            # the Actions UI is the fallback signal. Better than
-            # silently spamming new issues every day during a search
-            # outage.
-            echo "::warning::Skipped issue creation because dedupe lookup failed; rely on the Actions failure log for this run."
+            # exists. Earlier this branch skipped creation entirely
+            # to avoid duplicate-issue spam during a search outage,
+            # but that traded the wrong way: a smoke-test failure
+            # whose alert is silenced because GitHub's search index
+            # is having a bad minute defeats the whole point of the
+            # workflow. Operator notice wins over deduplication
+            # purity. Create the issue anyway, tag the body with a
+            # marker so the operator knows dedupe didn't run, and
+            # they can manually consolidate if multiple alerts pile
+            # up during an extended outage. We still try the labeled
+            # create with a fallback to unlabeled.
+            DEDUPE_FAIL_NOTE=$(printf '%s\n' \
+              "" \
+              "---" \
+              "⚠️ **Dedupe lookup failed** when this issue was opened, so \`gh\` could not check whether a tracking issue for the same condition already exists. If you see another open issue with this title, manually consolidate them — the workflow chose notification over deduplication during the outage.")
+            BODY_WITH_NOTE=$(printf '%s\n%s\n' "$BODY" "$DEDUPE_FAIL_NOTE")
+            label_err="$(mktemp)"
+            if ! gh issue create --repo "${GITHUB_REPOSITORY}" --title "$TITLE" --body "$BODY_WITH_NOTE" --label "smoke-failure" 2>"$label_err"; then
+              echo "::warning::gh issue create with --label smoke-failure failed; retrying without label. stderr: $(cat "$label_err")"
+              gh issue create --repo "${GITHUB_REPOSITORY}" --title "$TITLE" --body "$BODY_WITH_NOTE"
+            fi
+            rm -f "$label_err"
+            echo "Opened new issue (dedupe lookup skipped due to gh issue list failure)"
           fi
