@@ -82,23 +82,29 @@ jobs:
           # parsing it back out with sed — fragile if the body
           # itself happens to contain "HTTP_STATUS:" verbatim.
           body_file=$(mktemp)
+          err_file=$(mktemp)
+          # Capture stderr to a separate file (NOT /dev/null) so curl
+          # diagnostics survive for the failure message. Use
+          # `|| http_status="curl-failed"` to convert non-zero exit
+          # into a sentinel without aborting the step.
           http_status=$(curl -sS -X POST https://demo.lightningenable.com/api/demo-refill \
             -H "Authorization: Bearer $ADMIN_KEY" \
             -H "Content-Type: application/json" \
             --max-time 30 \
             --write-out '%{http_code}' \
             --output "$body_file" \
-            2>/dev/null) || http_status="curl-failed"
+            2>"$err_file") || http_status="curl-failed"
 
           body=$(cat "$body_file")
-          rm -f "$body_file"
+          curl_err=$(cat "$err_file")
+          rm -f "$body_file" "$err_file"
 
           echo "HTTP status: ${http_status}"
           echo "Body:"
           echo "$body" | jq . 2>/dev/null || echo "$body"
 
           if [ "$http_status" = "curl-failed" ]; then
-            echo "::error::curl itself failed (DNS, TLS, max-time, etc.) — could not reach the refill endpoint."
+            echo "::error::curl itself failed (DNS, TLS, max-time, etc.) — could not reach the refill endpoint. curl stderr: ${curl_err}"
             exit 1
           fi
           if [ "$http_status" != "200" ]; then
@@ -134,12 +140,24 @@ jobs:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
           set -euo pipefail
-          TITLE="🚨 Daily demo refill failed"
-          existing=$(gh issue list --repo "${GITHUB_REPOSITORY}" --state open --search "in:title \"$TITLE\"" --json number --jq '.[0].number' 2>/dev/null || echo "")
-          BODY=$(cat <<EOF
-          The daily demo refill (OpenNode → CoinOS) failed on $(date -u +%FT%TZ).
+          # Plain-ASCII title so GitHub's issue-search tokenizer matches
+          # consistently. The emoji is now in the body's first line for
+          # the visual cue without confusing search.
+          TITLE="Daily demo refill failed"
+          # `// empty` keeps jq from emitting the literal "null" when no
+          # match is found — otherwise [ -n "$existing" ] would treat
+          # "null" as truthy and try to comment on a non-existent issue.
+          existing=$(gh issue list --repo "${GITHUB_REPOSITORY}" --state open --search "in:title \"$TITLE\"" --json number --jq '.[0].number // empty' 2>/dev/null || echo "")
 
-          Run: ${GITHUB_SERVER_URL}/${GITHUB_REPOSITORY}/actions/runs/${GITHUB_RUN_ID}
+          # Build the body as a bash multi-line string. Earlier this
+          # was a `cat <<EOF` heredoc, but the YAML `run: |` block
+          # indents every line — and `<<EOF` (no dash) requires the
+          # closing EOF marker at column 0 with no leading whitespace.
+          # A multi-line "..." literal sidesteps the issue entirely
+          # and reads more naturally inside the indented block.
+          BODY="🚨 The daily demo refill (OpenNode → CoinOS) failed on $(date -u +%FT%TZ).
+
+          **Run:** ${GITHUB_SERVER_URL}/${GITHUB_REPOSITORY}/actions/runs/${GITHUB_RUN_ID}
 
           Likely causes (in order of frequency):
           1. OPENNODE_WITHDRAWAL_API_KEY revoked, rotated, or wrong scope
@@ -148,12 +166,14 @@ jobs:
           4. Vercel function crashed — check Vercel logs for the demo-refill function
           5. OpenNode API base URL misconfigured (allowlist rejects it)
 
-          Note: "OpenNode balance too low" is NOT in this list — that
-          condition returns skipped:true and never fires this alert.
-          EOF
-          )
+          Note: \"OpenNode balance too low\" is NOT in this list — that condition returns skipped:true and never fires this alert."
+
           if [ -n "$existing" ]; then
             gh issue comment "$existing" --repo "${GITHUB_REPOSITORY}" --body "$BODY"
+            # Apply the label on the existing issue too (idempotent).
+            # If the label doesn't exist, ignore the failure — admin
+            # can create the label later if they prefer.
+            gh issue edit "$existing" --repo "${GITHUB_REPOSITORY}" --add-label "refill-failure" 2>/dev/null || true
             echo "Commented on existing issue #$existing"
           else
             gh issue create --repo "${GITHUB_REPOSITORY}" --title "$TITLE" --body "$BODY" --label "refill-failure" 2>/dev/null \

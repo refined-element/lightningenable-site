@@ -165,6 +165,34 @@ export default async function handler(req, res) {
     });
   }
 
+  // Defense-in-depth: the LNURL-pay callback URL is returned by the
+  // metadata response we just received, so a compromised CoinOS (or
+  // a MITM) could in principle hand back a callback pointing at an
+  // attacker-controlled host. Verify the callback's host matches the
+  // hardcoded LNURL domain (`coinos.io`) before following it. If
+  // CoinOS legitimately moves to a different domain in the future,
+  // this check fails closed and the operator updates the hardcoded
+  // LIGHTNING_ADDRESS / domain string — preferable to silently
+  // following an unexpected redirect to a third party.
+  let callbackHost;
+  try {
+    callbackHost = new URL(lnurlpMeta.callback).host;
+  } catch {
+    return res.status(502).json({
+      ok: false,
+      error: `CoinOS LNURL-pay callback URL is malformed: "${String(lnurlpMeta.callback).slice(0, 100)}"`,
+      trace,
+    });
+  }
+  if (callbackHost !== domain) {
+    return res.status(502).json({
+      ok: false,
+      error: `CoinOS LNURL-pay callback host "${callbackHost}" does not match the lightning-address domain "${domain}". Refusing to follow a cross-host callback.`,
+      trace,
+    });
+  }
+  log("callback_host_verified", { host: callbackHost });
+
   // LNURL-pay expects amount in millisats. Validate it's within the
   // wallet's declared range to avoid the callback returning an error
   // we'd then have to translate.
@@ -218,6 +246,31 @@ export default async function handler(req, res) {
   }
   log("invoice_received", { bolt11Prefix: bolt11.slice(0, 16) + "…" });
 
+  // Verify the invoice's encoded amount matches what we asked for.
+  // A misbehaving (or malicious) LNURL endpoint could return an
+  // invoice for a larger amount than the LNURL-pay request specified;
+  // without this check, OpenNode would happily pay whatever the
+  // invoice says. Parses the BOLT-11 amount prefix
+  // (lnbc<amount><multiplier>): no multiplier = BTC, m=milli, u=micro,
+  // n=nano, p=pico. We compare to REFILL_SATS exactly — over- or
+  // under-payment both fail.
+  const parsedSats = parseBolt11Sats(bolt11);
+  if (parsedSats === null) {
+    return res.status(502).json({
+      ok: false,
+      error: "Could not parse the amount from the BOLT-11 invoice returned by CoinOS.",
+      trace,
+    });
+  }
+  if (parsedSats !== REFILL_SATS) {
+    return res.status(502).json({
+      ok: false,
+      error: `BOLT-11 invoice amount (${parsedSats} sat) does not match the requested refill amount (${REFILL_SATS} sat). Refusing to pay a mismatched invoice.`,
+      trace,
+    });
+  }
+  log("invoice_amount_verified", { sats: parsedSats });
+
   // ── 5. Ask OpenNode to pay that invoice ──────────────────────────────
   // OpenNode's withdrawal API: POST /v2/withdrawals with the bolt11
   // as the `address` field. Auth via raw API key in the
@@ -250,12 +303,22 @@ export default async function handler(req, res) {
     if (!r.ok) {
       // Look for OpenNode's "not enough balance" signal. They've
       // historically used messages like "Insufficient available
-      // balance" / "Not enough balance" — case-insensitive substring
-      // match catches the common shapes without locking us to one
-      // exact spelling.
+      // balance" / "Not enough balance" / "Account balance too low",
+      // and the response is typically HTTP 402 (Payment Required)
+      // or 400. We gate on (HTTP 400 OR 402) AND a permissive
+      // balance-related substring match. The HTTP-status pre-gate
+      // avoids treating 5xx/network errors as "skip" (those should
+      // alert), and the message-pattern check is now an OR over
+      // the common shapes so we tolerate small wording changes.
       const msg = (parsed?.message || text || "").toString();
-      const isInsufficientBalance = /insufficient/i.test(msg)
-        && /balance/i.test(msg);
+      const messageLooksLikeBalance =
+        /insufficient/i.test(msg) ||
+        /not enough/i.test(msg) ||
+        /balance.*low/i.test(msg) ||
+        /low.*balance/i.test(msg) ||
+        /no funds/i.test(msg);
+      const isInsufficientBalance = (r.status === 400 || r.status === 402)
+        && messageLooksLikeBalance;
       if (isInsufficientBalance) {
         log("openNode_insufficient_balance");
         return res.status(200).json({
@@ -304,4 +367,47 @@ export default async function handler(req, res) {
     },
     trace,
   });
+}
+
+/**
+ * Parses the amount encoded in a BOLT-11 invoice prefix.
+ * Returns the amount in whole sats, or null if the invoice is
+ * unparseable or has an unsupported multiplier resolution.
+ *
+ * BOLT-11 amount format: `lnbc<amount><multiplier>...`
+ *   - no multiplier:  amount is in whole BTC          (× 100_000_000 sats/BTC)
+ *   - `m` (milli):    amount × 0.001 BTC              (× 100_000     sats)
+ *   - `u` (micro):    amount × 0.000_001 BTC          (× 100         sats)
+ *   - `n` (nano):     amount × 0.000_000_001 BTC      (÷ 10          sats; fraction)
+ *   - `p` (pico):     amount × 0.000_000_000_001 BTC  (÷ 10_000      sats; fraction)
+ *
+ * For REFILL_SATS=200, expected invoice prefix is `lnbc2u`. We
+ * reject fractional results (nano/pico shapes whose amount isn't
+ * a clean multiple) to avoid silently rounding.
+ *
+ * Mainnet (`lnbc`) and testnet (`lntb`) both supported; signet
+ * (`lntbs`) currently isn't — change `^ln(bc|tb)` if needed.
+ */
+function parseBolt11Sats(bolt11) {
+  if (typeof bolt11 !== "string") return null;
+  const m = bolt11.toLowerCase().match(/^ln(bc|tb)(\d+)([munp]?)/);
+  if (!m) return null;
+  const amount = parseInt(m[2], 10);
+  const mult = m[3] || "";
+  if (!Number.isFinite(amount) || amount <= 0) return null;
+  switch (mult) {
+    case "":  return amount * 100_000_000;
+    case "m": return amount * 100_000;
+    case "u": return amount * 100;
+    case "n":
+      // nano: amount × 0.1 sats; must be divisible by 10 for whole sats
+      if (amount % 10 !== 0) return null;
+      return amount / 10;
+    case "p":
+      // pico: amount × 0.0001 sats; must be divisible by 10_000
+      if (amount % 10_000 !== 0) return null;
+      return amount / 10_000;
+    default:
+      return null;
+  }
 }
