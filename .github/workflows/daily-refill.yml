@@ -238,13 +238,24 @@ jobs:
             # Try with the refill-failure label; if --label fails (e.g.
             # the label doesn't yet exist on the repo) capture the
             # reason and retry without it so the operator still gets
-            # notified.
+            # notified. The retry call ALSO captures stderr — if it
+            # too fails, `set -euo pipefail` would silently abort the
+            # step (workflow runs `failure()` is already running, so
+            # the operator gets no notification at all). Capturing
+            # the retry's stderr and emitting `::error::` ensures the
+            # Actions run log carries the actual reason both creates
+            # failed, even when neither produced a tracking issue.
             label_err="$(mktemp)"
+            retry_err="$(mktemp)"
             if ! gh issue create --repo "${GITHUB_REPOSITORY}" --title "$TITLE" --body "$BODY" --label "refill-failure" 2>"$label_err"; then
               echo "::warning::gh issue create with --label refill-failure failed; retrying without label. stderr: $(cat "$label_err")"
-              gh issue create --repo "${GITHUB_REPOSITORY}" --title "$TITLE" --body "$BODY"
+              if ! gh issue create --repo "${GITHUB_REPOSITORY}" --title "$TITLE" --body "$BODY" 2>"$retry_err"; then
+                echo "::error::Both labeled and unlabeled gh issue create attempts failed. Refill alert was NOT delivered. labeled-err: $(cat "$label_err") | retry-err: $(cat "$retry_err")"
+                rm -f "$label_err" "$retry_err"
+                exit 1
+              fi
             fi
-            rm -f "$label_err"
+            rm -f "$label_err" "$retry_err"
             echo "Opened new issue"
           else
             # Lookup failed — we *don't* know whether an issue already
@@ -259,10 +270,15 @@ jobs:
               "⚠️ **Dedupe lookup failed** when this issue was opened, so \`gh\` could not check whether a tracking issue for the same condition already exists. If you see another open issue with this title, manually consolidate them — the workflow chose notification over deduplication during the outage.")
             BODY_WITH_NOTE=$(printf '%s\n%s\n' "$BODY" "$DEDUPE_FAIL_NOTE")
             label_err="$(mktemp)"
+            retry_err="$(mktemp)"
             if ! gh issue create --repo "${GITHUB_REPOSITORY}" --title "$TITLE" --body "$BODY_WITH_NOTE" --label "refill-failure" 2>"$label_err"; then
               echo "::warning::gh issue create with --label refill-failure failed; retrying without label. stderr: $(cat "$label_err")"
-              gh issue create --repo "${GITHUB_REPOSITORY}" --title "$TITLE" --body "$BODY_WITH_NOTE"
+              if ! gh issue create --repo "${GITHUB_REPOSITORY}" --title "$TITLE" --body "$BODY_WITH_NOTE" 2>"$retry_err"; then
+                echo "::error::Both labeled and unlabeled gh issue create attempts failed (dedupe-failed branch). Refill alert was NOT delivered. labeled-err: $(cat "$label_err") | retry-err: $(cat "$retry_err")"
+                rm -f "$label_err" "$retry_err"
+                exit 1
+              fi
             fi
-            rm -f "$label_err"
+            rm -f "$label_err" "$retry_err"
             echo "Opened new issue (dedupe lookup skipped due to gh issue list failure)"
           fi

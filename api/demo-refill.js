@@ -350,19 +350,40 @@ export default async function handler(req, res) {
           trace,
         });
       }
-      // Defense-in-depth: scrub the OpenNode API key from any echoed
-      // text before returning. OpenNode's documented error shape is
-      // `{ message: "..." }` and we prefer that, but `text.slice(...)`
-      // is the fallback when the response isn't JSON. If OpenNode (or
-      // any intermediate proxy) ever echoed back the Authorization
-      // header value, returning it in our JSON response would surface
-      // the key to whatever called this endpoint. Replace any
-      // occurrence of the key in the chosen detail string with `[redacted]`
-      // before sending it back. Cheap, idempotent, never breaks
-      // legitimate error messages.
+      // Defense-in-depth: scrub credential-shaped data from any
+      // echoed text before returning. OpenNode's documented error
+      // shape is `{ message: "..." }` and we prefer that, but
+      // `text.slice(...)` is the fallback when the response isn't
+      // JSON. If OpenNode (or any intermediate proxy) ever echoed
+      // back the Authorization header value — even in a transformed
+      // form (URL-encoded, base64-wrapped, partially masked by a
+      // proxy) — returning it in our JSON response would surface
+      // the key to whatever called this endpoint.
+      //
+      // Two-layer redaction:
+      //   1. Exact-match scrub of the configured openNodeKey (the
+      //      common case if anything ever echoed the raw header).
+      //   2. Generic scrub of any opaque token-shaped substring
+      //      longer than 32 chars that's contiguous safe-token
+      //      characters [A-Za-z0-9_-]+ (the shape of the
+      //      Authorization header value, and also of any common
+      //      base64/url-encoded variant). 32 is shorter than the
+      //      key itself but longer than any human-readable phrase
+      //      OpenNode would put in a `message` field, so we don't
+      //      accidentally redact normal error text.
+      //
+      // The 32-char cap on legitimate words is deliberate: looked at
+      // every OpenNode error message we've seen in practice, none
+      // are even close. If a future error message legitimately
+      // contained a long opaque value (a withdrawal id, a hash,
+      // etc.), it would get redacted too — that's acceptable for a
+      // failure-path detail string. Notification is the goal;
+      // diagnostic precision is secondary.
       const rawDetails = parsed?.message ?? text.slice(0, 300);
       const safeDetails = typeof rawDetails === "string"
-        ? rawDetails.split(openNodeKey).join("[redacted]")
+        ? rawDetails
+            .split(openNodeKey).join("[redacted]")
+            .replace(/[A-Za-z0-9_-]{32,}/g, "[redacted]")
         : rawDetails;
       return res.status(502).json({
         ok: false,

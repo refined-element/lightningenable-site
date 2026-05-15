@@ -13,6 +13,22 @@
 // (1 BTC). The current regex `^ln(bc|tb)(\d+)([munp])1` requires a
 // multiplier AND a trailing bech32-separator `1` to make that
 // failure mode impossible.
+//
+// SCOPE — what these tests do and do NOT cover:
+//   These are PREFIX-PARSER tests. The fixture invoices below
+//   (e.g. `"lnbc2u1pv9xyzabc"`) are NOT real bech32-valid BOLT-11
+//   invoices — the data part after the HRP separator is arbitrary
+//   so the test can focus on the amount-prefix logic that
+//   parseBolt11Sats is responsible for. Full bech32 validation
+//   (checksum, signature, payment_hash extraction, etc.) is NOT
+//   parseBolt11Sats's job — in the production flow the LNURL-pay
+//   endpoint issued the invoice and OpenNode is the one that pays
+//   it; we trust those parties to surface a real bolt11 and only
+//   re-parse the amount as defense against an LNURL-pay response
+//   that doesn't match what we asked for. If we ever decide to do
+//   full bech32 validation in-process, that's a separate function
+//   and a separate test suite — these tests should NOT be
+//   retrofitted to cover that surface.
 
 import { test } from "node:test";
 import assert from "node:assert/strict";
