@@ -40,10 +40,12 @@
       // Render the banner copy. "low" still lets the button work; "out"
       // and "error" gray the button.
       if (h.status === "low") {
+        const sats = h.balanceSats ?? "?";
+        const unit = sats === 1 ? "sat" : "sats";
         elBanner.className = "demo-health-banner banner-low";
         elBanner.innerHTML = `
           <strong>Demo wallet running low.</strong>
-          <span>~${escapeHtml(String(h.balanceSats ?? "?"))} sat remaining — the agent flow may stop working soon while we refill.</span>
+          <span>~${escapeHtml(String(sats))} ${unit} remaining — the agent flow may stop working soon while we refill.</span>
         `;
       } else if (h.status === "out") {
         elBanner.className = "demo-health-banner banner-out";
@@ -64,8 +66,17 @@
       elBanner.classList.remove("hidden");
     })
     .catch(() => {
-      // /api/demo-health itself failed. Don't gate the button on this
-      // — health-check infra outage shouldn't take the demo down.
+      // /api/demo-health itself failed (network error, 5xx, etc.).
+      // Failure-closed per the design: gate the button and show the
+      // same banner as the "error" status case so the prospect sees
+      // a graceful explanation rather than a click that goes nowhere.
+      elBanner.className = "demo-health-banner banner-error";
+      elBanner.innerHTML = `
+        <strong>Demo agent temporarily unavailable.</strong>
+        <span>We're working on it. The code samples and walkthrough below describe the same flow.</span>
+      `;
+      elBanner.classList.remove("hidden");
+      elBtn.disabled = true;
     });
 
   // ── BTC rate (no hardcoded fallback) ────────────────────────────────
