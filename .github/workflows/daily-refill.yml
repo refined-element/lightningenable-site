@@ -1,0 +1,335 @@
+name: Daily Demo Refill
+
+# Why this exists:
+#   The live demo at demo.lightningenable.com drains sats from a
+#   small CoinOS NWC wallet on every "Run the agent" click. Sats
+#   accumulate in the OPPOSITE direction in the demo merchant's
+#   OpenNode account (each demo run pays the LE merchant — which is
+#   the operator's own account). Left alone, CoinOS empties and
+#   OpenNode fills; eventually demo flow breaks until manually
+#   refilled.
+#
+#   This workflow closes the loop daily: hit the /api/demo-refill
+#   endpoint, which moves a fixed small amount (200 sats by default)
+#   from OpenNode back to CoinOS via a Lightning withdrawal to the
+#   operator's CoinOS Lightning address.
+#
+# Why 11:30 UTC:
+#   Chosen to run shortly before any daily smoke / health workflow
+#   that exercises the demo flow, so a freshly-topped-up wallet is
+#   in place when the smoke runs. A sibling smoke workflow may or
+#   may not ship at the same time as this one (see PR series) — if
+#   it does, expect it to run at 12:07 UTC, giving this refill 37
+#   minutes of headroom. The schedule is independent of whether the
+#   smoke ships: this workflow is useful on its own (keeps the
+#   wallet topped up), and a future smoke run benefits indirectly
+#   (catches a refill failure via INSUFFICIENT_BALANCE on the
+#   following day).
+#
+# Skipped vs failed:
+#   The endpoint returns ok:true with skipped:true when the OpenNode
+#   balance is too low to cover the refill — that's the normal
+#   "system at rest with nothing to move" state during idle periods
+#   and is NOT alertable. The workflow treats skipped:true as success
+#   and just logs the reason.
+#
+# Failure handling:
+#   Any other non-200 response, or a network error before HTTP, is
+#   treated as a real failure. The workflow opens (or comments on) a
+#   GitHub Issue via the `gh` CLI so notifications reach the operator
+#   regardless of GitHub's default cron-failure email behavior.
+#   Most likely actually-alertable failure modes:
+#     - OPENNODE_WITHDRAWAL_API_KEY revoked or wrong scope
+#     - CoinOS LNURL-pay endpoint structurally broken (extended outage)
+#     - DEMO_REFILL_ADMIN_KEY mismatch between this workflow's secret
+#       and the Vercel env var
+
+on:
+  schedule:
+    - cron: '30 11 * * *'  # 11:30 UTC daily
+  workflow_dispatch:
+    # Manual fire-now button in the Actions UI — useful for testing
+    # the wiring after first setup, or when the wallet ran dry between
+    # scheduled refills.
+
+permissions:
+  contents: read
+  issues: write  # required for the failure-notification step below
+
+jobs:
+  refill:
+    name: Refill demo wallet from OpenNode → CoinOS
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - name: POST /api/demo-refill
+        env:
+          ADMIN_KEY: ${{ secrets.DEMO_REFILL_ADMIN_KEY }}
+        run: |
+          # NOTE: deliberately NOT using `set -euo pipefail` here —
+          # `pipefail` would cause the curl-with-pipe-into-tee pattern
+          # below to abort the whole step on a non-2xx response,
+          # before our explicit check can categorize it. We check
+          # `${http_status}` ourselves and `exit 1` only on real
+          # failures.
+          set -u
+
+          if [ -z "${ADMIN_KEY:-}" ]; then
+            echo "::error::DEMO_REFILL_ADMIN_KEY secret is not set on this repo. Add it under Settings → Secrets and variables → Actions."
+            exit 1
+          fi
+
+          # Write response body to a temp file, capture HTTP status
+          # via curl's --write-out. This avoids the prior pattern of
+          # appending `HTTP_STATUS:%{http_code}` to the body and
+          # parsing it back out with sed — fragile if the body
+          # itself happens to contain "HTTP_STATUS:" verbatim.
+          body_file=$(mktemp)
+          err_file=$(mktemp)
+          # Capture stderr to a separate file (NOT /dev/null) so curl
+          # diagnostics survive for the failure message. Use
+          # `|| http_status="curl-failed"` to convert non-zero exit
+          # into a sentinel without aborting the step.
+          #
+          # --max-time budget:
+          #   The Vercel function's worst-case wall-clock is the sum
+          #   of its upstream fetch timeouts:
+          #     2 × CoinOS fetch (10s each) + 1 × OpenNode fetch (15s)
+          #     = 35s
+          #   plus 5–10s of cold-start + sync overhead (auth check,
+          #   allowlist check, JSON parse/serialize, regex match,
+          #   crypto.timingSafeEqual). Worst-case wall-clock is ~45s
+          #   on a cold start. The function is configured with
+          #   `maxDuration: 60` in vercel.json so cold-start runs
+          #   don't get killed mid-flight with a Vercel-side 504
+          #   that the workflow can't distinguish from a real
+          #   failure.
+          #   Curl's --max-time must outlive the function's
+          #   maxDuration; otherwise a slow-but-eventually-successful
+          #   upstream causes curl to abort first with exit 28, the
+          #   workflow records `curl-failed` and opens an alert
+          #   issue — even though the withdrawal may have been
+          #   submitted to OpenNode after curl gave up. 75s leaves
+          #   15s of headroom over the function's max wall-clock.
+          http_status=$(curl -sS -X POST https://demo.lightningenable.com/api/demo-refill \
+            -H "Authorization: Bearer $ADMIN_KEY" \
+            -H "Content-Type: application/json" \
+            --max-time 75 \
+            --write-out '%{http_code}' \
+            --output "$body_file" \
+            2>"$err_file") || http_status="curl-failed"
+
+          body=$(cat "$body_file")
+          curl_err=$(cat "$err_file")
+          rm -f "$body_file" "$err_file"
+
+          echo "HTTP status: ${http_status}"
+          echo "Body:"
+          echo "$body" | jq . 2>/dev/null || echo "$body"
+
+          if [ "$http_status" = "curl-failed" ]; then
+            echo "::error::curl itself failed (DNS, TLS, max-time, etc.) — could not reach the refill endpoint. curl stderr: ${curl_err}"
+            exit 1
+          fi
+          if [ "$http_status" != "200" ]; then
+            error=$(echo "$body" | jq -r '.error // ""' 2>/dev/null || true)
+            echo "::error::Refill failed (HTTP ${http_status}). ${error}"
+            exit 1
+          fi
+
+          ok=$(echo "$body" | jq -r '.ok // false' 2>/dev/null || echo "false")
+          if [ "$ok" != "true" ]; then
+            echo "::error::Refill endpoint returned ok=false. See body above for details."
+            exit 1
+          fi
+
+          # Graceful-skip path: ok:true with skipped:true means OpenNode
+          # had insufficient balance (idle period — nothing to move).
+          # Log and exit success without sending an alert.
+          skipped=$(echo "$body" | jq -r '.skipped // false' 2>/dev/null || echo "false")
+          if [ "$skipped" = "true" ]; then
+            reason=$(echo "$body" | jq -r '.reason // ""' 2>/dev/null || true)
+            echo "ℹ️  Refill skipped: ${reason}"
+            exit 0
+          fi
+
+          refillSats=$(echo "$body" | jq -r '.refillSats // "?"' 2>/dev/null || echo "?")
+          withdrawalId=$(echo "$body" | jq -r '.withdrawal.id // "?"' 2>/dev/null || echo "?")
+          status=$(echo "$body" | jq -r '.withdrawal.status // "?"' 2>/dev/null || echo "?")
+          echo "✅ Refill submitted: ${refillSats} sats → CoinOS (withdrawal id=${withdrawalId}, status=${status})"
+
+      - name: Open / update tracking issue on failure
+        if: failure()
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          set -euo pipefail
+          # Plain-ASCII title so GitHub's issue-search tokenizer matches
+          # consistently. The emoji is now in the body's first line for
+          # the visual cue without confusing search.
+          TITLE="Daily demo refill failed"
+          # Find a still-open issue with this exact title.
+          #
+          # Why not --search "in:title \"$TITLE\"":
+          #   Issue search is backed by GitHub's full-text index,
+          #   which is eventually consistent (a newly-opened issue
+          #   may not appear in search for a few seconds to minutes)
+          #   and only returns one page of results by default. A
+          #   queued manual workflow_dispatch racing a scheduled run
+          #   could "succeed" with no match before the scheduled
+          #   issue is indexed, opening a duplicate. Plain
+          #   `gh issue list` reads the open-issue table directly
+          #   and is strongly consistent. --limit 200 + client-side
+          #   jq filter for exact title.
+          #
+          # jq guards: `set -euo pipefail` is active, so an
+          # unguarded `... | jq ...` whose jq leg fails would abort
+          # this entire notification step. The jq invocation is
+          # wrapped in its own `if` so the assignment's exit status
+          # is captured; if jq errors (malformed JSON, missing
+          # field, anything), we fall through to the "lookup
+          # failed" branch — better to lose dedupe than to lose
+          # the alert.
+          lookup_err="$(mktemp)"
+          jq_err="$(mktemp)"
+          lookup_ok=0
+          existing=""
+          if existing_json=$(gh issue list --repo "${GITHUB_REPOSITORY}" --state open --limit 200 --json number,title 2>"$lookup_err"); then
+            if existing=$(printf '%s' "$existing_json" | jq -r --arg t "$TITLE" '[.[] | select(.title == $t)] | .[0].number // empty' 2>"$jq_err"); then
+              lookup_ok=1
+            else
+              echo "::warning::jq failed parsing gh issue list output; will create issue without dedupe. stderr: $(cat "$jq_err")"
+              existing=""
+              lookup_ok=0
+            fi
+          else
+            echo "::warning::gh issue list failed; will create issue without dedupe. stderr: $(cat "$lookup_err")"
+          fi
+          rm -f "$lookup_err" "$jq_err"
+
+          # Build the Markdown body line-by-line via printf '%s\n'.
+          #
+          # Why not a multi-line bash literal? Two conflicting
+          # constraints:
+          #   - YAML `run: |` block scalar requires every line of the
+          #     script to be indented at the established level (10
+          #     spaces here). A line at column 0 terminates the block
+          #     and the YAML parser then mis-interprets the next line
+          #     as a sibling YAML key, breaking the whole workflow file
+          #     (which is exactly what happened in the first attempt
+          #     at this fix — workflow failed to even start because
+          #     the YAML was malformed).
+          #   - Markdown renders 4+ leading spaces as a preformatted
+          #     code block. A body string whose lines all start with
+          #     10 spaces (because we kept them at YAML indent and
+          #     used a bash literal that preserves whitespace verbatim)
+          #     renders as one giant code block in the issue.
+          # printf '%s\n' "line1" "line2" ... solves both:
+          #   - Every shell-source line stays at YAML indent (parser
+          #     is happy).
+          #   - Each quoted argument starts at the first non-whitespace
+          #     character, so the resulting body has no leading spaces
+          #     and Markdown renders normally.
+          BODY=$(printf '%s\n' \
+            "🚨 The daily demo refill (OpenNode → CoinOS) failed on $(date -u +%FT%TZ)." \
+            "" \
+            "**Run:** ${GITHUB_SERVER_URL}/${GITHUB_REPOSITORY}/actions/runs/${GITHUB_RUN_ID}" \
+            "" \
+            "Likely causes (in order of frequency):" \
+            "1. OPENNODE_WITHDRAWAL_API_KEY revoked, rotated, or wrong scope" \
+            "2. DEMO_REFILL_ADMIN_KEY mismatch (Vercel env var vs GitHub secret)" \
+            "3. CoinOS LNURL-pay endpoint down (transient — try \`workflow_dispatch\` rerun in a few min)" \
+            "4. Vercel function crashed — check Vercel logs for the demo-refill function" \
+            "5. OpenNode API base URL misconfigured (allowlist rejects it)" \
+            "" \
+            "Note: \"OpenNode balance too low\" is NOT in this list — that condition returns skipped:true and never fires this alert.")
+
+          if [ -n "$existing" ]; then
+            # Try to comment on the existing tracking issue. If
+            # that fails (issue locked, deleted between lookup
+            # and comment, or transient API failure), fall back to
+            # opening a fresh issue with a marker — without this,
+            # `set -euo pipefail` would abort and the operator
+            # would get no notification of the current refill
+            # failure.
+            comment_err="$(mktemp)"
+            if gh issue comment "$existing" --repo "${GITHUB_REPOSITORY}" --body "$BODY" 2>"$comment_err"; then
+              # Apply the label on the existing issue (idempotent).
+              # If the label doesn't exist, capture the reason; not
+              # fatal.
+              label_edit_err="$(mktemp)"
+              if ! gh issue edit "$existing" --repo "${GITHUB_REPOSITORY}" --add-label "refill-failure" 2>"$label_edit_err"; then
+                echo "::warning::gh issue edit --add-label refill-failure failed on #$existing; not fatal. stderr: $(cat "$label_edit_err")"
+              fi
+              rm -f "$label_edit_err"
+              echo "Commented on existing issue #$existing"
+            else
+              echo "::warning::gh issue comment on #$existing failed; falling back to a fresh issue. stderr: $(cat "$comment_err")"
+              FALLBACK_NOTE=$(printf '%s\n' \
+                "" \
+                "---" \
+                "⚠️ **Comment-on-existing failed.** An open tracking issue #${existing} exists with this title, but \`gh issue comment\` could not post to it (it may be locked, deleted, or the API call failed transiently). This is a fresh issue with the same content so the alert wasn't lost. Please consolidate manually.")
+              BODY_WITH_NOTE=$(printf '%s\n%s\n' "$BODY" "$FALLBACK_NOTE")
+              fallback_err="$(mktemp)"
+              if ! gh issue create --repo "${GITHUB_REPOSITORY}" --title "$TITLE" --body "$BODY_WITH_NOTE" --label "refill-failure" 2>"$fallback_err"; then
+                echo "::warning::Fallback gh issue create with label failed; retrying without label. stderr: $(cat "$fallback_err")"
+                if ! gh issue create --repo "${GITHUB_REPOSITORY}" --title "$TITLE" --body "$BODY_WITH_NOTE" 2>"$fallback_err"; then
+                  echo "::error::Comment failed AND fallback create attempts both failed. Refill alert was NOT delivered. comment-err: $(cat "$comment_err") | create-err: $(cat "$fallback_err")"
+                  rm -f "$comment_err" "$fallback_err"
+                  exit 1
+                fi
+              fi
+              rm -f "$fallback_err"
+              echo "Opened fallback issue (comment on existing #$existing failed)"
+            fi
+            rm -f "$comment_err"
+          elif [ "$lookup_ok" -eq 1 ]; then
+            # Lookup definitively said "no open issue with this title."
+            # Try with the refill-failure label; if --label fails (e.g.
+            # the label doesn't yet exist on the repo) capture the
+            # reason and retry without it so the operator still gets
+            # notified. The retry call ALSO captures stderr — if it
+            # too fails, `set -euo pipefail` would silently abort the
+            # step (workflow runs `failure()` is already running, so
+            # the operator gets no notification at all). Capturing
+            # the retry's stderr and emitting `::error::` ensures the
+            # Actions run log carries the actual reason both creates
+            # failed, even when neither produced a tracking issue.
+            label_err="$(mktemp)"
+            retry_err="$(mktemp)"
+            if ! gh issue create --repo "${GITHUB_REPOSITORY}" --title "$TITLE" --body "$BODY" --label "refill-failure" 2>"$label_err"; then
+              echo "::warning::gh issue create with --label refill-failure failed; retrying without label. stderr: $(cat "$label_err")"
+              if ! gh issue create --repo "${GITHUB_REPOSITORY}" --title "$TITLE" --body "$BODY" 2>"$retry_err"; then
+                echo "::error::Both labeled and unlabeled gh issue create attempts failed. Refill alert was NOT delivered. labeled-err: $(cat "$label_err") | retry-err: $(cat "$retry_err")"
+                rm -f "$label_err" "$retry_err"
+                exit 1
+              fi
+            fi
+            rm -f "$label_err" "$retry_err"
+            echo "Opened new issue"
+          else
+            # Lookup failed — we *don't* know whether an issue already
+            # exists. Notification beats deduplication: a refill
+            # failure whose alert is silenced because the GitHub
+            # API returned a transient error defeats the workflow's
+            # whole purpose, and the operator can manually consolidate
+            # duplicates after the fact. Create the issue anyway with
+            # an appended "dedupe lookup failed" note.
+            DEDUPE_FAIL_NOTE=$(printf '%s\n' \
+              "" \
+              "---" \
+              "⚠️ **Dedupe lookup failed** when this issue was opened, so \`gh\` could not check whether a tracking issue for the same condition already exists. If you see another open issue with this title, manually consolidate them — the workflow chose notification over deduplication during the outage.")
+            BODY_WITH_NOTE=$(printf '%s\n%s\n' "$BODY" "$DEDUPE_FAIL_NOTE")
+            label_err="$(mktemp)"
+            retry_err="$(mktemp)"
+            if ! gh issue create --repo "${GITHUB_REPOSITORY}" --title "$TITLE" --body "$BODY_WITH_NOTE" --label "refill-failure" 2>"$label_err"; then
+              echo "::warning::gh issue create with --label refill-failure failed; retrying without label. stderr: $(cat "$label_err")"
+              if ! gh issue create --repo "${GITHUB_REPOSITORY}" --title "$TITLE" --body "$BODY_WITH_NOTE" 2>"$retry_err"; then
+                echo "::error::Both labeled and unlabeled gh issue create attempts failed (dedupe-failed branch). Refill alert was NOT delivered. labeled-err: $(cat "$label_err") | retry-err: $(cat "$retry_err")"
+                rm -f "$label_err" "$retry_err"
+                exit 1
+              fi
+            fi
+            rm -f "$label_err" "$retry_err"
+            echo "Opened new issue (dedupe lookup skipped due to gh issue list failure)"
+          fi

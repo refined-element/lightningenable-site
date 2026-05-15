@@ -3,7 +3,8 @@
   "functions": {
     "api/premium/weather.js": { "maxDuration": 10 },
     "api/premium/btc-price.js": { "maxDuration": 10 },
-    "api/run-agent.js": { "maxDuration": 60 }
+    "api/run-agent.js": { "maxDuration": 60 },
+    "api/demo-refill.js": { "maxDuration": 60 }
   },
   "headers": [
     {
