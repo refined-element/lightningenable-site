@@ -123,8 +123,10 @@ test("rejects amounts that resolve above 100M sats (round-8 cap)", () => {
   assert.equal(parseBolt11Sats("lnbc100000m1pv9xyz"), null);
   // 2m = 200_000 sats (still under 100M, allowed)
   assert.equal(parseBolt11Sats("lnbc2m1pv9xyz"), 200_000);
-  // 1000m = 100_000_000 sats (= 1 BTC, exactly at cap; rejected)
-  // Cap is "> MAX_SATS", and MAX_SATS = 100M, so 100M itself is rejected.
+  // 1000m = 100_000_000 sats (= 1 BTC, exactly at cap; rejected).
+  // The cap is `>= MAX_SATS` (i.e. 100M itself is rejected, and
+  // anything above). 999m → 99_900_000 sats would still pass; only
+  // amounts that reach OR exceed 100M sats are blocked.
   assert.equal(parseBolt11Sats("lnbc1000m1pv9xyz"), null);
 });
 

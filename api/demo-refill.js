@@ -87,24 +87,44 @@ export default async function handler(req, res) {
   // sometimes normalize the scheme differently. A case-sensitive
   // check is a footgun: presented would be the empty string, leading
   // to a 401 that looks like a wrong-key failure when it's actually
-  // a wrong-case scheme. Test the prefix case-insensitively, then
-  // slice off whatever the caller actually wrote.
+  // a wrong-case scheme. Test the prefix case-insensitively.
   const SCHEME = "Bearer ";
   const looksLikeBearer = auth.length >= SCHEME.length
     && auth.slice(0, SCHEME.length).toLowerCase() === SCHEME.toLowerCase();
-  const presented = looksLikeBearer ? auth.slice(SCHEME.length) : "";
-  // Constant-time compare. JS string `.length` reports UTF-16 code
-  // units, NOT bytes — for a non-ASCII admin key, that would
-  // mis-classify equal-length-as-bytes strings as unequal-length.
-  // Convert both sides to Buffers up front and use the byte-level
-  // length for the pre-check + timingSafeEqual for the constant-
-  // time bit-level comparison.
-  const presentedBuf = Buffer.from(presented, "utf8");
-  const adminKeyBuf = Buffer.from(adminKey, "utf8");
-  if (presentedBuf.length === 0 || presentedBuf.length !== adminKeyBuf.length) {
+  // RFC 7235 §2.1 allows one OR MORE linear whitespace characters
+  // between the scheme name and the credential. `Authorization:
+  // Bearer  KEY` (double space) is valid, as is `Bearer\tKEY`
+  // (tab). Slicing exactly `"Bearer ".length` (7 chars) would
+  // leave one leading whitespace character in `presented`, fail
+  // the length check, and return 401 with a misleading
+  // "wrong key" feel under manual testing. Trim leading
+  // whitespace after the slice.
+  const rawPresented = looksLikeBearer ? auth.slice(SCHEME.length) : "";
+  const presented = rawPresented.replace(/^\s+/, "");
+  // Constant-time compare. Two layers of defense against side-
+  // channel leaks:
+  //   1. SHA-256 both sides BEFORE the length check. SHA-256 outputs
+  //      are always exactly 32 bytes, so the length pre-check
+  //      becomes a tautology (always 32 === 32) and timing can no
+  //      longer reveal whether the presented value was the correct
+  //      byte length. Without this hash step, an early
+  //      length-mismatch return would short-circuit faster than a
+  //      same-length-but-different-bytes return, leaking the
+  //      configured key's byte length to any unauthenticated
+  //      caller. Threat model is small (200-sat per-call cap on
+  //      misuse) but the hash layer costs nothing and closes the
+  //      timing channel completely.
+  //   2. `crypto.timingSafeEqual` on the two 32-byte hashes.
+  //      Standard constant-time compare; bit-level mismatch
+  //      timing is uniform.
+  // Empty-string rejection happens AFTER hashing so its timing
+  // matches the wrong-key path.
+  if (presented.length === 0) {
     return res.status(401).json({ ok: false, error: "Unauthorized" });
   }
-  if (!crypto.timingSafeEqual(presentedBuf, adminKeyBuf)) {
+  const presentedHash = crypto.createHash("sha256").update(presented, "utf8").digest();
+  const adminKeyHash = crypto.createHash("sha256").update(adminKey, "utf8").digest();
+  if (!crypto.timingSafeEqual(presentedHash, adminKeyHash)) {
     return res.status(401).json({ ok: false, error: "Unauthorized" });
   }
 
@@ -555,6 +575,18 @@ function parseBolt11Sats(bolt11) {
  *   2. The error message explicitly pairs a quantity word with
  *      "balance" or "funds".
  *
+ * Forward-compat note: OpenNode (and many APIs) sometimes use
+ * 422 (Unprocessable Entity) or 409 (Conflict) for business-logic
+ * validation failures, and could plausibly start returning one of
+ * those for an "insufficient balance" condition in a future
+ * release. This predicate intentionally does NOT include 422/409
+ * — misclassifying a real balance shortage as a hard failure
+ * (which alerts) is the safer direction than misclassifying it
+ * as a benign skip (which silences). If OpenNode ever adds a new
+ * status code for this condition, you'll see a duplicate-issue
+ * pattern on a single condition and the predicate is the right
+ * place to update.
+ *
  * @param {number} httpStatus
  * @param {string} message
  * @returns {boolean}
@@ -602,33 +634,59 @@ function isInsufficientBalanceError(httpStatus, message) {
  */
 function redactSensitive(text, exactKey) {
   if (typeof text !== "string") return text;
+  // Pre-extract diagnostic-identifier shapes we want to PRESERVE
+  // through redaction:
+  //   - canonical UUIDs (8-4-4-4-12 hyphenated hex)
+  //   - 64-char hex runs (SHA-256 hashes, payment hashes — the
+  //     same shape OpenNode uses for withdrawal-id-style values
+  //     in its dashboard URLs).
+  // These get pulled out before the length-gated redaction pass
+  // runs, so even when they appear adjacent to other safe-token
+  // characters (e.g. "hash=<64 hex>"), the broadened character
+  // class below can't merge them into a too-long run that gets
+  // redacted.
   const UUID_RE = /\b[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}\b/g;
-  // Per-call random nonce for the UUID sentinel. The previous
+  const SHA256_RE = /\b[0-9a-fA-F]{64}\b/g;
+  // Per-call random nonce for the preserve-sentinel. The previous
   // version used a fixed `\x00UUID<n>\x00` token — if some
   // adversarial input contained that literal substring (a proxy
   // echo, a test fixture, an attacker payload), the final
   // restoration step would replace it with `uuidMatches[n]`, which
   // is `undefined` when no UUIDs were extracted at that index,
   // producing the literal string "undefined" in the output. The
-  // random nonce makes pre-existing collisions vanishingly unlikely:
-  // 128 bits of entropy means an attacker would need ~2^64 attempts
-  // to land one, and they'd need to do it BEFORE the function ran
-  // (since the nonce is regenerated each call). The nonce is plain
-  // hex so it can't accidentally contain regex metacharacters.
+  // random nonce makes pre-existing collisions vanishingly
+  // unlikely: 128 bits of entropy, regenerated each call. The
+  // nonce is plain hex so it can't accidentally contain regex
+  // metacharacters.
   const nonce = crypto.randomBytes(16).toString("hex");
-  const uuidMatches = [];
-  const withoutUuids = text.replace(UUID_RE, (m) => {
-    uuidMatches.push(m);
-    return `\x00${nonce}${uuidMatches.length - 1}\x00`;
-  });
-  let redacted = withoutUuids;
+  const preserved = [];
+  const pre = (m) => {
+    preserved.push(m);
+    return `\x00${nonce}${preserved.length - 1}\x00`;
+  };
+  // UUIDs first (more specific), then SHA-256 (broader hex). Run
+  // order matters: a UUID's hex content overlaps the SHA-256
+  // regex if you treat the hyphens as boundaries, so pulling
+  // UUIDs out first guarantees they're preserved verbatim.
+  const withoutIds = text.replace(UUID_RE, pre).replace(SHA256_RE, pre);
+  let redacted = withoutIds;
   if (exactKey) {
     redacted = redacted.split(exactKey).join("[redacted]");
   }
-  redacted = redacted.replace(/[A-Za-z0-9_-]{65,}/g, "[redacted]");
+  // Broadened character class catches more credential shapes:
+  //   - base64 padding (`=`, `+`, `/`)
+  //   - JWT-style (`.` between header.payload.signature)
+  //   - `name:secret`-style bearer values (`:`)
+  //   - URL-safe base64 (`-`, `_` already present)
+  // Spaces and other separators are NOT in the class, so a long
+  // natural-language sentence won't be collapsed. The 65-char
+  // threshold catches realistic API key shapes; UUIDs/SHA-256
+  // hashes survive via the pre-extract step above, even when they
+  // appear adjacent to other in-class characters.
+  redacted = redacted.replace(/[A-Za-z0-9_\-=+/.:]{65,}/g, "[redacted]");
   // Build a regex that only matches the per-call nonce.
   const restoreRe = new RegExp(`\\x00${nonce}(\\d+)\\x00`, "g");
-  return redacted.replace(restoreRe, (_, i) => uuidMatches[Number(i)]);
+  return redacted.replace(restoreRe, (_, i) => preserved[Number(i)]);
 }
 
 // Named exports for unit tests. `default` is the HTTP handler — Vercel

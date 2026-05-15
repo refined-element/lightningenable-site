@@ -154,3 +154,42 @@ test("redacts a 65-char run (one above threshold)", () => {
   assert.ok(out.includes("[redacted]"));
   assert.ok(!out.includes(blob65));
 });
+
+test("redacts a JWT-style token (round-9 char-class broadening)", () => {
+  // The previous char class [A-Za-z0-9_-] missed JWT-style tokens
+  // with `.` between header.payload.signature. The broadened class
+  // now includes `.` so JWTs get caught.
+  const jwtish = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiIxMjM0NTY3ODkwIiwibmFtZSI6IkpvaG4ifQ";
+  const out = redactSensitive(`token=${jwtish}`, "different-key");
+  assert.ok(out.includes("[redacted]"));
+  assert.ok(!out.includes(jwtish));
+});
+
+test("redacts a base64-padded token (round-9)", () => {
+  // Fixture intentionally includes non-hex characters (`+`, `/`,
+  // `=`, `g-z`) so it can't accidentally match the SHA-256 hex
+  // preserve pattern. Length is 68 (well above 65 threshold).
+  const b64 = "QWxhZGRpbjpvcGVuIHNlc2FtZQABCDEFghijklmnopqrstuvwxyz+/xyzXYZ012345==";
+  const out = redactSensitive(`auth=${b64}`, "different-key");
+  assert.ok(out.includes("[redacted]"));
+  assert.ok(!out.includes(b64));
+});
+
+test("redacts a name:secret-style token (round-9)", () => {
+  const ns = "user12345:supersecretpassword12345678901234567890123456789012345678";
+  const out = redactSensitive(`creds=${ns}`, "different-key");
+  assert.ok(out.includes("[redacted]"));
+  assert.ok(!out.includes(ns));
+});
+
+test("preserves SHA-256 hash even when adjacent to in-class prefix (round-9 regression)", () => {
+  // When we broadened the char class to include `=`,
+  // "hash=<64 hex>" became a 69+ char contiguous run that the
+  // length-gated redact would catch. Pre-extracting SHA-256
+  // hashes (alongside UUIDs) before the redaction pass preserves
+  // the diagnostic identifier.
+  const hash = "f".repeat(64);
+  const out = redactSensitive(`payment_hash=${hash}`, "fake-key");
+  assert.match(out, new RegExp(hash),
+    "the SHA-256 hash must survive even when adjacent to '=' or other in-class characters");
+});

@@ -15,12 +15,16 @@ name: Daily Demo Refill
 #   operator's CoinOS Lightning address.
 #
 # Why 11:30 UTC:
-#   37 min before the daily smoke test (12:07 UTC, in the sibling
-#   daily-smoke.yml workflow), so a fresh refill is in place when the
-#   smoke validates the agent flow. Order matters: smoke-after-refill
-#   means the smoke catches a refill failure indirectly (wallet didn't
-#   get topped up → smoke fails on INSUFFICIENT_BALANCE), in addition
-#   to this workflow surfacing the refill failure directly.
+#   Chosen to run shortly before any daily smoke / health workflow
+#   that exercises the demo flow, so a freshly-topped-up wallet is
+#   in place when the smoke runs. A sibling smoke workflow may or
+#   may not ship at the same time as this one (see PR series) — if
+#   it does, expect it to run at 12:07 UTC, giving this refill 37
+#   minutes of headroom. The schedule is independent of whether the
+#   smoke ships: this workflow is useful on its own (keeps the
+#   wallet topped up), and a future smoke run benefits indirectly
+#   (catches a refill failure via INSUFFICIENT_BALANCE on the
+#   following day).
 #
 # Skipped vs failed:
 #   The endpoint returns ok:true with skipped:true when the OpenNode
@@ -32,8 +36,7 @@ name: Daily Demo Refill
 # Failure handling:
 #   Any other non-200 response, or a network error before HTTP, is
 #   treated as a real failure. The workflow opens (or comments on) a
-#   GitHub Issue via the `gh` CLI — mirroring the sibling
-#   daily-smoke.yml workflow, so notifications reach the operator
+#   GitHub Issue via the `gh` CLI so notifications reach the operator
 #   regardless of GitHub's default cron-failure email behavior.
 #   Most likely actually-alertable failure modes:
 #     - OPENNODE_WITHDRAWAL_API_KEY revoked or wrong scope
@@ -97,10 +100,10 @@ jobs:
           #   allowlist check, JSON parse/serialize, regex match,
           #   crypto.timingSafeEqual). Worst-case wall-clock is ~45s
           #   on a cold start. The function is configured with
-          #   `maxDuration: 60` in vercel.json (was 45; round-7 bumped
-          #   it up so cold-start runs don't get killed mid-flight
-          #   with a Vercel-side 504 that the workflow can't
-          #   distinguish from a real failure).
+          #   `maxDuration: 60` in vercel.json so cold-start runs
+          #   don't get killed mid-flight with a Vercel-side 504
+          #   that the workflow can't distinguish from a real
+          #   failure.
           #   Curl's --max-time must outlive the function's
           #   maxDuration; otherwise a slow-but-eventually-successful
           #   upstream causes curl to abort first with exit 28, the
@@ -177,8 +180,7 @@ jobs:
           #   issue is indexed, opening a duplicate. Plain
           #   `gh issue list` reads the open-issue table directly
           #   and is strongly consistent. --limit 200 + client-side
-          #   jq filter for exact title. Mirrors the round-6 fix in
-          #   the sibling daily-smoke workflow.
+          #   jq filter for exact title.
           #
           # jq guards: `set -euo pipefail` is active, so an
           # unguarded `... | jq ...` whose jq leg fails would abort
@@ -249,8 +251,7 @@ jobs:
             # opening a fresh issue with a marker — without this,
             # `set -euo pipefail` would abort and the operator
             # would get no notification of the current refill
-            # failure. Mirrors the round-7 fix in the sibling
-            # daily-smoke workflow.
+            # failure.
             comment_err="$(mktemp)"
             if gh issue comment "$existing" --repo "${GITHUB_REPOSITORY}" --body "$BODY" 2>"$comment_err"; then
               # Apply the label on the existing issue (idempotent).
@@ -308,11 +309,12 @@ jobs:
             echo "Opened new issue"
           else
             # Lookup failed — we *don't* know whether an issue already
-            # exists. Mirroring the sibling daily-smoke workflow's
-            # round-5 reversal: notification beats deduplication.
-            # Create the issue anyway with an appended "dedupe lookup
-            # failed" note so the operator can manually consolidate
-            # if duplicates pile up during an extended search outage.
+            # exists. Notification beats deduplication: a refill
+            # failure whose alert is silenced because the GitHub
+            # API returned a transient error defeats the workflow's
+            # whole purpose, and the operator can manually consolidate
+            # duplicates after the fact. Create the issue anyway with
+            # an appended "dedupe lookup failed" note.
             DEDUPE_FAIL_NOTE=$(printf '%s\n' \
               "" \
               "---" \
