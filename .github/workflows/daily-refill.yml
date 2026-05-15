@@ -166,33 +166,42 @@ jobs:
           fi
           rm -f "$lookup_err"
 
-          # Build the Markdown body with NO leading indentation. The
-          # YAML `run: |` block strips a fixed amount of leading
-          # whitespace from every line — but ONLY because that's how
-          # the block scalar parser works. The bash string literal
-          # that follows is a different beast: it preserves every byte
-          # between its opening and closing quotes verbatim. If we
-          # indent the body lines to match the surrounding code (which
-          # reads naturally), every body line ends up with leading
-          # spaces, and Markdown renders 4+ leading spaces as a code
-          # block. Result: the GitHub issue is one big preformatted
-          # blob instead of a numbered list.
+          # Build the Markdown body line-by-line via printf '%s\n'.
           #
-          # Fix: keep the body lines unindented. Slight visual jolt
-          # against the surrounding indentation, but the output is
-          # correct Markdown.
-          BODY="🚨 The daily demo refill (OpenNode → CoinOS) failed on $(date -u +%FT%TZ).
-
-**Run:** ${GITHUB_SERVER_URL}/${GITHUB_REPOSITORY}/actions/runs/${GITHUB_RUN_ID}
-
-Likely causes (in order of frequency):
-1. OPENNODE_WITHDRAWAL_API_KEY revoked, rotated, or wrong scope
-2. DEMO_REFILL_ADMIN_KEY mismatch (Vercel env var vs GitHub secret)
-3. CoinOS LNURL-pay endpoint down (transient — try \`workflow_dispatch\` rerun in a few min)
-4. Vercel function crashed — check Vercel logs for the demo-refill function
-5. OpenNode API base URL misconfigured (allowlist rejects it)
-
-Note: \"OpenNode balance too low\" is NOT in this list — that condition returns skipped:true and never fires this alert."
+          # Why not a multi-line bash literal? Two conflicting
+          # constraints:
+          #   - YAML `run: |` block scalar requires every line of the
+          #     script to be indented at the established level (10
+          #     spaces here). A line at column 0 terminates the block
+          #     and the YAML parser then mis-interprets the next line
+          #     as a sibling YAML key, breaking the whole workflow file
+          #     (which is exactly what happened in the first attempt
+          #     at this fix — workflow failed to even start because
+          #     the YAML was malformed).
+          #   - Markdown renders 4+ leading spaces as a preformatted
+          #     code block. A body string whose lines all start with
+          #     10 spaces (because we kept them at YAML indent and
+          #     used a bash literal that preserves whitespace verbatim)
+          #     renders as one giant code block in the issue.
+          # printf '%s\n' "line1" "line2" ... solves both:
+          #   - Every shell-source line stays at YAML indent (parser
+          #     is happy).
+          #   - Each quoted argument starts at the first non-whitespace
+          #     character, so the resulting body has no leading spaces
+          #     and Markdown renders normally.
+          BODY=$(printf '%s\n' \
+            "🚨 The daily demo refill (OpenNode → CoinOS) failed on $(date -u +%FT%TZ)." \
+            "" \
+            "**Run:** ${GITHUB_SERVER_URL}/${GITHUB_REPOSITORY}/actions/runs/${GITHUB_RUN_ID}" \
+            "" \
+            "Likely causes (in order of frequency):" \
+            "1. OPENNODE_WITHDRAWAL_API_KEY revoked, rotated, or wrong scope" \
+            "2. DEMO_REFILL_ADMIN_KEY mismatch (Vercel env var vs GitHub secret)" \
+            "3. CoinOS LNURL-pay endpoint down (transient — try \`workflow_dispatch\` rerun in a few min)" \
+            "4. Vercel function crashed — check Vercel logs for the demo-refill function" \
+            "5. OpenNode API base URL misconfigured (allowlist rejects it)" \
+            "" \
+            "Note: \"OpenNode balance too low\" is NOT in this list — that condition returns skipped:true and never fires this alert.")
 
           if [ -n "$existing" ]; then
             gh issue comment "$existing" --repo "${GITHUB_REPOSITORY}" --body "$BODY"
