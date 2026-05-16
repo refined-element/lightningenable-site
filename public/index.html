@@ -5,12 +5,92 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0" />
 <title>Lightning Enable — Monetize your API for AI agents</title>
 <meta name="description" content="Software paying software, per request, over Lightning. Let AI agents buy from your API in sats — alongside your existing subscriptions, rate limits, and API keys." />
+
+<!-- Canonical: the apex is the source of truth; demo.lightningenable.com
+     remains as the monitoring-cron target alias, but search engines and
+     LLMs should treat https://lightningenable.com/ as authoritative. -->
+<link rel="canonical" href="https://lightningenable.com/" />
+
+<!-- Open Graph + Twitter (social link previews). og:image is the
+     existing 512x512 brand mark; a dedicated 1200x630 social card is
+     a follow-up (better aspect for Facebook/LinkedIn previews) but
+     this works for Discord, Slack, Twitter, and most direct shares. -->
 <meta property="og:title" content="Lightning Enable — Monetize your API for AI agents" />
 <meta property="og:description" content="Infrastructure for agentic commerce over Lightning. Drop into your existing API and let agents pay per request. Flat monthly fee, no per-transaction cut." />
 <meta property="og:type" content="website" />
-<meta property="og:url" content="https://demo.lightningenable.com" />
+<meta property="og:url" content="https://lightningenable.com/" />
+<meta property="og:site_name" content="Lightning Enable" />
+<meta property="og:image" content="https://lightningenable.com/images/logo-icon.png" />
+<meta property="og:image:width" content="512" />
+<meta property="og:image:height" content="512" />
+<meta property="og:image:alt" content="Lightning Enable brand mark — a stylized lightning bolt" />
 <meta name="twitter:card" content="summary_large_image" />
+<meta name="twitter:title" content="Lightning Enable — Monetize your API for AI agents" />
+<meta name="twitter:description" content="Software paying software, per request, over Lightning. Drop into your existing API." />
+<meta name="twitter:image" content="https://lightningenable.com/images/logo-icon.png" />
+
+<!-- Favicons. The SVG covers most modern browsers; PNG fallback +
+     apple-touch-icon for iOS home-screen save. -->
 <link rel="icon" type="image/svg+xml" href="favicon.svg" />
+<link rel="icon" type="image/png" sizes="512x512" href="images/logo-icon.png" />
+<link rel="apple-touch-icon" sizes="512x512" href="images/logo-icon.png" />
+
+<!-- JSON-LD structured data: helps Google's Knowledge Graph and
+     general-purpose LLMs understand the entity. The SoftwareApplication
+     entry surfaces both pricing tiers; the Organization entry ties the
+     brand to its parent company + OSS surfaces. -->
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@graph": [
+    {
+      "@type": "Organization",
+      "@id": "https://lightningenable.com/#org",
+      "name": "Lightning Enable",
+      "url": "https://lightningenable.com/",
+      "logo": "https://lightningenable.com/images/logo.svg",
+      "description": "Infrastructure for agentic commerce over Lightning. Lightning Enable lets AI agents pay APIs per request over the Lightning Network, with payment becoming authorization via the L402 protocol.",
+      "parentOrganization": {
+        "@type": "Organization",
+        "name": "Refined Element, LLC",
+        "url": "https://refinedelement.com"
+      },
+      "sameAs": [
+        "https://github.com/refined-element/lightning-enable-mcp",
+        "https://github.com/refined-element/l402-ts",
+        "https://docs.lightningenable.com"
+      ]
+    },
+    {
+      "@type": "SoftwareApplication",
+      "name": "Lightning Enable",
+      "operatingSystem": "Cross-platform (HTTP API; .NET, Node, Python middleware)",
+      "applicationCategory": "DeveloperApplication",
+      "url": "https://lightningenable.com/",
+      "publisher": { "@id": "https://lightningenable.com/#org" },
+      "offers": [
+        {
+          "@type": "Offer",
+          "name": "Agentic Commerce — Individual",
+          "price": "99",
+          "priceCurrency": "USD",
+          "billingDuration": "P1M",
+          "description": "For solo API builders, indie SaaS, and side-project APIs going to production. Unlimited L402 endpoints, flat monthly fee, no per-transaction percentage."
+        },
+        {
+          "@type": "Offer",
+          "name": "Agentic Commerce — Business",
+          "price": "299",
+          "priceCurrency": "USD",
+          "billingDuration": "P1M",
+          "description": "For teams and platforms with multiple APIs, customer SLAs, or expected agent traffic spikes. Adds priority support, higher rate limits, multi-currency settlement."
+        }
+      ]
+    }
+  ]
+}
+</script>
+
 <link rel="preconnect" href="https://fonts.googleapis.com" />
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;700;900&family=JetBrains+Mono:wght@400;700&display=swap" rel="stylesheet" />

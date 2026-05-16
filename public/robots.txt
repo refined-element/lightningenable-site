@@ -1,0 +1,11 @@
+# Lightning Enable — search engine + agent crawl policy.
+#
+# Allow everything. The site is a public marketing page + a single
+# demo widget; nothing here is private. The /api/* endpoints are
+# either authenticated (run-agent, demo-refill) or rate-limited
+# (premium/*), so a polite crawler can't exhaust the demo wallet.
+
+User-agent: *
+Allow: /
+
+Sitemap: https://lightningenable.com/sitemap.xml

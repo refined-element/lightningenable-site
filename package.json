@@ -1,7 +1,7 @@
 {
-  "name": "lightningenable-demo",
+  "name": "lightningenable-site",
   "version": "0.1.0",
-  "description": "Live agentic L402 demo for Lightning Enable. Static landing page + two Vercel serverless functions: a merchant endpoint that issues 402 Payment Required challenges, and an agent function that buys from it over real Lightning.",
+  "description": "Marketing site for Lightning Enable (lightningenable.com). Static landing page + Vercel serverless functions for the embedded live demo (an autonomous agent settling real Lightning against the producer API).",
   "private": true,
   "type": "module",
   "scripts": {

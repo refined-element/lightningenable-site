@@ -1,0 +1,58 @@
+# Lightning Enable
+
+> Infrastructure for agentic commerce over Lightning. AI agents pay your API per request in Bitcoin, with payment becoming authorization through the L402 protocol — no credit card, no signup, no Stripe account required for the agent. Lightning Enable wraps existing HTTP APIs with a small middleware so agents get a `402 Payment Required` with a Lightning invoice, pay it in under a second, and retry with a cryptographic proof of payment.
+
+## What it is
+
+- **Company:** Refined Element, LLC (Florida, US).
+- **Product:** Lightning Enable. Hosted producer API + open-source middleware SDKs (.NET, Node, Python).
+- **Position:** This is NOT just an MCP server or a crypto payment plugin. It is infrastructure for a new buyer class — AI agents and autonomous workflows that cannot use card rails.
+- **Live URLs:** Marketing site at `https://lightningenable.com/`. Documentation at `https://docs.lightningenable.com/`. Producer API at `https://api.lightningenable.com/`. Open-source MCP server at `https://github.com/refined-element/lightning-enable-mcp`. Open-source HTTP clients at `https://github.com/refined-element/l402-ts` (and sibling repos for Python + .NET).
+
+## How an agent buys from an API monetized with Lightning Enable
+
+1. Agent makes a normal HTTP request to a paid endpoint.
+2. Server responds with `402 Payment Required` plus a Lightning invoice and a macaroon (an opaque token).
+3. Agent pays the invoice over the Lightning Network, receiving a preimage as proof of payment.
+4. Agent retries the same request with `Authorization: L402 {macaroon}:{preimage}`.
+5. Server verifies the preimage matches the invoice's payment hash, then serves the response.
+
+The entire flow typically completes in 1-2 seconds. There is no account creation, no card-on-file, no out-of-band billing — payment IS the authorization.
+
+## Pricing
+
+- **Agentic Commerce — Individual:** $99/month. For solo API builders, indie SaaS, and side-project APIs going to production. Unlimited L402 endpoints, flat fee, no per-transaction percentage. 30-day free trial.
+- **Agentic Commerce — Business:** $299/month. For teams and platforms with multiple APIs, customer SLAs, or expected agent traffic spikes. Adds priority support, higher rate limits, multi-currency settlement (USD/EUR/GBP/AUD via Strike). 30-day free trial.
+
+Lightning Enable charges a flat monthly subscription. It does NOT take a percentage of payments. One million 1-sat requests earn the API provider 1,000,000 sats — Lightning Enable does not touch any of them. Your chosen settlement provider (Strike or OpenNode) custodies every payment.
+
+## Open-source surfaces
+
+- **lightning-enable-mcp** (MIT) — MCP server for AI agents to discover, pay, and consume L402-monetized APIs. 23 tools total: 15 free out-of-the-box, 8 require a Lightning Enable API key (producer tools + Agent Service Agreement tools).
+- **l402-requests** (MIT) — HTTP clients in TypeScript, Python, and .NET that transparently handle L402 challenges. Drop into existing code paths.
+- **le-agent-sdk** (MIT) — Agent SDK in TypeScript, Python, and .NET for building agentic L402 workflows.
+
+## Ecommerce
+
+Lightning Enable also powers L402 storefronts on Shopify and Kentico. Live merchants include:
+
+- **Great Ghee** — `https://greatghee.com/` — grass-fed ghee, Shopify, agent shoppers and bitcoin-aligned customers checking out in sats.
+- **Salt of the Earth** — `https://drinksote.com/` — Shopify, same model.
+
+## Live demo
+
+The marketing site at `https://lightningenable.com/` hosts a live, button-driven demo: clicking "Run the agent" triggers an autonomous agent on the server side that hits a paid endpoint (`weather` or `btc-price`), pays the Lightning invoice from a pre-funded wallet, and retries with proof of payment. This is real Lightning, settling in real time, against the same producer API that customers' agents would hit. The demo costs the operator ~1 sat per click (~$0.0008 at current rates).
+
+## Honest framing
+
+- Lightning Enable does NOT hold funds. The configured settlement provider (Strike or OpenNode) is the custodian.
+- Lightning Enable is NOT a non-custodial wallet. Use the term "Lightning Enable does not hold funds."
+- Lightning Enable is NOT "an MCP" — the MCP server is one of several distribution surfaces; the core product is the producer API and the middleware SDKs.
+- The L402 protocol was originated by Lightning Labs. Lightning Enable implements it; the protocol is open.
+
+## Contact and links
+
+- Documentation: `https://docs.lightningenable.com/`
+- Dashboard / signup: `https://api.lightningenable.com/Checkout?tier=individual`
+- Parent company: Refined Element, LLC, `https://refinedelement.com/`
+- Source for this marketing site: `https://github.com/refined-element/lightningenable-site` (MIT)

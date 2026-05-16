@@ -1,22 +1,35 @@
-# Lightning Enable — Demo
+# Lightning Enable — Marketing Site
 
-Live agentic L402 demo for [Lightning Enable](https://lightningenable.com). Deployed at `demo.lightningenable.com`. A visitor clicks one button, an autonomous agent on our server runs the full L402 buy flow against our own paid API (`402 → pay invoice → retry with credential → 200`), and the visitor watches the timeline in real time. Real Lightning, real Bitcoin, ≈ $0.0008 per call.
+Production marketing site for [Lightning Enable](https://lightningenable.com/). Single-page homepage with an embedded live agentic L402 demo: a visitor clicks one button, an autonomous agent on the server runs the full L402 buy flow against the producer API (`402 → pay invoice → retry with credential → 200`), and the visitor watches the timeline in real time. Real Lightning, real Bitcoin, ≈ $0.0008 per call.
+
+The same project also serves `demo.lightningenable.com` as a permanent alias — used by the daily-smoke + daily-refill monitoring crons to validate the demo's funding loop without depending on the apex.
 
 ## Structure
 
 ```
-lightningenable-demo/
+lightningenable-site/
 ├── public/
-│   ├── index.html       Landing page (hero, try-it widget, why, code tabs, dashboard, pricing)
-│   ├── styles.css       a-commerce-aligned dark theme
-│   ├── app.js           Widget JS — calls /api/run-agent, animates trace
-│   └── favicon.svg
+│   ├── index.html       Homepage (hero, demo, L402 explainer, why-now, revenue stream, code tabs, dashboard, trust, pricing)
+│   ├── styles.css       Dark theme, Inter + JetBrains Mono, Stripe/Tempo-style glass header
+│   ├── app.js           Widget JS — calls /api/run-agent, animates trace, surfaces plain-English summary
+│   ├── llms.txt         Agent / LLM-readable site summary
+│   ├── robots.txt
+│   ├── sitemap.xml
+│   ├── favicon.svg
+│   ├── images/          Logo + favicon
+│   └── dashboard/       Dashboard screenshots (homepage + pricing tab; full set in the LE dashboard itself)
 ├── api/
 │   ├── premium/
 │   │   ├── weather.js   Merchant endpoint — L402-gated weather (Open-Meteo upstream, free)
 │   │   └── btc-price.js Merchant endpoint — L402-gated BTC price (CoinGecko upstream, free)
-│   └── run-agent.js     Agent — autonomously buys from the merchant endpoints
-├── vercel.json          Function durations + caching headers
+│   ├── run-agent.js     Agent — autonomously buys from the merchant endpoints (per-IP cooldown, referer allowlist, 25-sat per-call cap)
+│   ├── demo-refill.js   Admin-keyed OpenNode → CoinOS refill (run by .github/workflows/daily-refill.yml at 11:30 UTC)
+│   └── demo-health.js   Public health gate used by the homepage banner
+├── .github/workflows/
+│   ├── daily-refill.yml   11:30 UTC, OpenNode → CoinOS, 200 sats, opens GitHub Issue on failure
+│   └── daily-smoke.yml    12:07 UTC, full agent flow, alternates weather/btc-price, opens GitHub Issue on failure
+├── tests/                Node test runner; parser + redaction + balance-pattern unit tests
+├── vercel.json           Function durations + caching headers
 └── package.json
 ```
 
