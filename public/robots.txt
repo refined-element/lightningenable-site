@@ -8,4 +8,4 @@
 User-agent: *
 Allow: /
 
-Sitemap: https://lightningenable.com/sitemap.xml
+Sitemap: https://www.lightningenable.com/sitemap.xml

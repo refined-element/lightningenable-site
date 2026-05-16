@@ -6,10 +6,12 @@
 <title>Lightning Enable — Monetize your API for AI agents</title>
 <meta name="description" content="Software paying software, per request, over Lightning. Let AI agents buy from your API in sats — alongside your existing subscriptions, rate limits, and API keys." />
 
-<!-- Canonical: the apex is the source of truth; demo.lightningenable.com
-     remains as the monitoring-cron target alias, but search engines and
-     LLMs should treat https://lightningenable.com/ as authoritative. -->
-<link rel="canonical" href="https://lightningenable.com/" />
+<!-- Canonical: www is the serving surface (Vercel redirects apex →
+     www, so www is the URL search engines and LLMs should treat as
+     authoritative). demo.lightningenable.com remains as the
+     monitoring-cron target alias and gets its own canonical pointer
+     here too — visitors landing on either host get sent to www. -->
+<link rel="canonical" href="https://www.lightningenable.com/" />
 
 <!-- Open Graph + Twitter (social link previews). og:image is the
      existing 512x512 brand mark; a dedicated 1200x630 social card is
@@ -18,16 +20,16 @@
 <meta property="og:title" content="Lightning Enable — Monetize your API for AI agents" />
 <meta property="og:description" content="Infrastructure for agentic commerce over Lightning. Drop into your existing API and let agents pay per request. Flat monthly fee, no per-transaction cut." />
 <meta property="og:type" content="website" />
-<meta property="og:url" content="https://lightningenable.com/" />
+<meta property="og:url" content="https://www.lightningenable.com/" />
 <meta property="og:site_name" content="Lightning Enable" />
-<meta property="og:image" content="https://lightningenable.com/images/logo-icon.png" />
+<meta property="og:image" content="https://www.lightningenable.com/images/logo-icon.png" />
 <meta property="og:image:width" content="512" />
 <meta property="og:image:height" content="512" />
 <meta property="og:image:alt" content="Lightning Enable brand mark — a stylized lightning bolt" />
 <meta name="twitter:card" content="summary_large_image" />
 <meta name="twitter:title" content="Lightning Enable — Monetize your API for AI agents" />
 <meta name="twitter:description" content="Software paying software, per request, over Lightning. Drop into your existing API." />
-<meta name="twitter:image" content="https://lightningenable.com/images/logo-icon.png" />
+<meta name="twitter:image" content="https://www.lightningenable.com/images/logo-icon.png" />
 
 <!-- Favicons. The SVG covers most modern browsers; PNG fallback +
      apple-touch-icon for iOS home-screen save. -->
@@ -45,10 +47,10 @@
   "@graph": [
     {
       "@type": "Organization",
-      "@id": "https://lightningenable.com/#org",
+      "@id": "https://www.lightningenable.com/#org",
       "name": "Lightning Enable",
-      "url": "https://lightningenable.com/",
-      "logo": "https://lightningenable.com/images/logo.svg",
+      "url": "https://www.lightningenable.com/",
+      "logo": "https://www.lightningenable.com/images/logo.svg",
       "description": "Infrastructure for agentic commerce over Lightning. Lightning Enable lets AI agents pay APIs per request over the Lightning Network, with payment becoming authorization via the L402 protocol.",
       "parentOrganization": {
         "@type": "Organization",
@@ -66,8 +68,8 @@
       "name": "Lightning Enable",
       "operatingSystem": "Cross-platform (HTTP API; .NET, Node, Python middleware)",
       "applicationCategory": "DeveloperApplication",
-      "url": "https://lightningenable.com/",
-      "publisher": { "@id": "https://lightningenable.com/#org" },
+      "url": "https://www.lightningenable.com/",
+      "publisher": { "@id": "https://www.lightningenable.com/#org" },
       "offers": [
         {
           "@type": "Offer",
