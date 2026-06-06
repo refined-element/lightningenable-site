@@ -421,3 +421,60 @@ jobs:
             rm -f "$label_err" "$retry_err"
             echo "Opened new issue (dedupe lookup skipped due to gh issue list failure)"
           fi
+
+      # Reliable recovery notification. `if: success()` runs only when the
+      # smoke step exited 0. Looks up any open tracking issue with the same
+      # title the failure step uses and closes it with a recovery comment.
+      # This closes the gap that left issue #18 open for 4 days after the
+      # 2026-05-26 Open-Meteo brownout despite four consecutive green runs.
+      #
+      # Why this never fails the workflow:
+      #   The smoke itself already passed before this step runs. Failing
+      #   the workflow because the post-success tracking-issue cleanup
+      #   hit a transient gh API error would mean the operator gets a
+      #   spurious red-build alert on a healthy day. Notification of
+      #   real failures wins over cleanup purity — we log warnings and
+      #   exit 0 on any lookup / close failure.
+      #
+      # Why `gh issue list` (not --search): same reason the failure step
+      # uses it — strongly consistent, doesn't race the eventually-
+      # consistent search index, and reads the open-issue table directly.
+      - name: Close tracking issue on success
+        if: success()
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          set -euo pipefail
+          TITLE="Daily demo smoke test failed"
+          lookup_err="$(mktemp)"
+          if existing_json=$(gh issue list --repo "${GITHUB_REPOSITORY}" --state open --limit 200 --json number,title 2>"$lookup_err"); then
+            existing=$(printf '%s' "$existing_json" | jq -r --arg t "$TITLE" '[.[] | select(.title == $t)] | .[0].number // empty')
+          else
+            echo "::warning::gh issue list failed during success-cleanup; not flipping the workflow to failure since the smoke itself succeeded. stderr: $(cat "$lookup_err")"
+            rm -f "$lookup_err"
+            exit 0
+          fi
+          rm -f "$lookup_err"
+
+          if [ -z "$existing" ]; then
+            echo "No open tracking issue to close — nothing to do."
+            exit 0
+          fi
+
+          ENDPOINT_KIND="${SMOKE_ENDPOINT_KIND:-?}"
+          COMMENT=$(printf '%s\n' \
+            "✅ Auto-closing — daily smoke ran clean on $(date -u +%FT%TZ)." \
+            "" \
+            "**Endpoint exercised:** \`${ENDPOINT_KIND}\`" \
+            "**Run:** ${GITHUB_SERVER_URL}/${GITHUB_REPOSITORY}/actions/runs/${GITHUB_RUN_ID}" \
+            "" \
+            "If the underlying cause is intermittent, the next failure will re-open a tracking issue (or comment on this one if you reopen it manually).")
+
+          close_err="$(mktemp)"
+          if ! gh issue close "$existing" --repo "${GITHUB_REPOSITORY}" --comment "$COMMENT" 2>"$close_err"; then
+            echo "::warning::Failed to auto-close issue #${existing}; the smoke succeeded but the cleanup did not. Will retry on the next green run. stderr: $(cat "$close_err")"
+            rm -f "$close_err"
+            exit 0
+          fi
+          rm -f "$close_err"
+          echo "Auto-closed tracking issue #${existing}"
