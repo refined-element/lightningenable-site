@@ -22,7 +22,7 @@ The entire flow typically completes in 1-2 seconds. There is no account creation
 ## Pricing
 
 - **Agentic Commerce — Individual:** $99/month. For solo API builders, indie SaaS, and side-project APIs going to production. Unlimited L402 endpoints, flat fee, no per-transaction percentage. 30-day free trial.
-- **Agentic Commerce — Business:** $299/month. For teams and platforms with multiple APIs, customer SLAs, or expected agent traffic spikes. Adds priority support, higher rate limits, multi-currency settlement (USD/EUR/GBP/AUD via Strike). 30-day free trial.
+- **Agentic Commerce — Business:** $299/month. For teams and platforms with multiple APIs, or anyone who wants hands-on onboarding help. Everything in Individual, plus white-glove onboarding, direct founder access, and priority support. 30-day free trial.
 
 Lightning Enable charges a flat monthly subscription. It does NOT take a percentage of payments. One million 1-sat requests earn the API provider 1,000,000 sats — Lightning Enable does not touch any of them. Your chosen settlement provider (Strike or OpenNode) custodies every payment.
 
