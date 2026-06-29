@@ -8,3 +8,9 @@ node_modules/
 .vscode/
 .idea/
 dist/
+
+# Local-only QA reference snapshots — generated for manual review,
+# not served to visitors, and they tend to embed stale parameter
+# names. Keep them in the working tree but out of git history.
+audit/
+
