@@ -92,6 +92,37 @@ test("redacts the key but preserves UUIDs in a mixed message", () => {
   assert.ok(out.includes("[redacted]"));
 });
 
+test("redacts a UUID-format API key but preserves an unrelated UUID (round-10 leak fix)", () => {
+  // OpenNode API keys ARE canonical UUIDs. The earlier pipeline
+  // pre-extracted every UUID into a preserve-list BEFORE the
+  // exact-key scrub, then restored them verbatim at the end — so a
+  // UUID-shaped configured key was PRESERVED (leaked) instead of
+  // redacted. The fix scrubs `exactKey` first, before the UUID/SHA
+  // preserve pass. An UNRELATED UUID (a withdrawal id) must still be
+  // preserved for tracing; only the configured key is removed.
+  const key = "b3e5f8a2-1c4d-4e6f-8a9b-0c1d2e3f4a5b";
+  const withdrawalId = "11111111-2222-3333-4444-555555555555";
+  const msg = `{"message":"Invalid API key: ${key}","withdrawal":"${withdrawalId}"}`;
+  const out = redactSensitive(msg, key);
+  assert.ok(!out.includes(key),
+    "the UUID-format configured key must not leak through");
+  assert.ok(out.includes("[redacted]"));
+  assert.match(out, new RegExp(withdrawalId),
+    "an unrelated withdrawal UUID must survive for tracing");
+});
+
+test("redacts a UUID-format API key echoed with different hex case (round-10)", () => {
+  // A proxy/upstream may echo the key with different hex casing.
+  // The exact-key scrub is case-insensitive, so an upper-cased echo
+  // of a lower-cased configured key is still removed.
+  const key = "b3e5f8a2-1c4d-4e6f-8a9b-0c1d2e3f4a5b";
+  const echoed = key.toUpperCase();
+  const out = redactSensitive(`Invalid API key: ${echoed}`, key);
+  assert.ok(!out.toLowerCase().includes(key.toLowerCase()),
+    "the key must not leak through regardless of hex case");
+  assert.ok(out.includes("[redacted]"));
+});
+
 test("preserves multiple UUIDs in the same message", () => {
   const u1 = "11111111-2222-3333-4444-555555555555";
   const u2 = "aaaaaaaa-bbbb-cccc-dddd-eeeeeeeeeeee";

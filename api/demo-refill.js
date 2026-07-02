@@ -619,11 +619,17 @@ function isInsufficientBalanceError(httpStatus, message) {
  * (UUIDs, withdrawal IDs, payment hashes) so the operator can
  * still trace the failed request in OpenNode's dashboard.
  *
- * Three layers:
- *   1. Pre-extract UUIDs (canonical 8-4-4-4-12 hyphenated form).
- *      These NEVER get redacted, regardless of other rules.
- *   2. Exact-match scrub of `exactKey` (the configured OpenNode
- *      API key — the common case if anything echoed it back).
+ * Order matters — exact-key scrub runs FIRST:
+ *   1. Exact-match scrub of `exactKey` (the configured OpenNode
+ *      API key). This MUST run before the UUID/SHA preserve pass
+ *      below, because OpenNode API keys ARE canonical UUIDs — if we
+ *      preserved UUIDs first, the configured key would be pulled
+ *      into the preserve-list and restored verbatim at the end,
+ *      leaking it. Case-insensitive so a differently-cased hex echo
+ *      is still caught.
+ *   2. Pre-extract UUIDs (canonical 8-4-4-4-12 hyphenated form) and
+ *      SHA-256 hashes. These NEVER get redacted — an UNRELATED UUID
+ *      (a withdrawal id) must survive for tracing.
  *   3. Length-gated opaque-token scrub at 65+ chars. Above
  *      UUIDs (36), above SHA-256 hashes (64), at-or-above
  *      realistic API key lengths.
@@ -664,15 +670,26 @@ function redactSensitive(text, exactKey) {
     preserved.push(m);
     return `\x00${nonce}${preserved.length - 1}\x00`;
   };
+  // Exact-key scrub FIRST — OpenNode keys are canonical UUIDs, so
+  // running the UUID/SHA preserve pass before this would pull the
+  // configured key into the preserve-list and restore it verbatim at
+  // the end, leaking the raw key. Scrub it up front. Case-insensitive
+  // because an upstream/proxy may echo the key with different hex
+  // casing. The exactKey is regex-escaped so any metacharacters in a
+  // non-UUID key are treated literally.
+  let scrubbed = text;
+  if (exactKey) {
+    const keyRe = new RegExp(exactKey.replace(/[.*+?^${}()|[\]\\]/g, "\\$&"), "gi");
+    scrubbed = scrubbed.replace(keyRe, "[redacted]");
+  }
   // UUIDs first (more specific), then SHA-256 (broader hex). Run
   // order matters: a UUID's hex content overlaps the SHA-256
   // regex if you treat the hyphens as boundaries, so pulling
-  // UUIDs out first guarantees they're preserved verbatim.
-  const withoutIds = text.replace(UUID_RE, pre).replace(SHA256_RE, pre);
+  // UUIDs out first guarantees they're preserved verbatim. This
+  // runs on `scrubbed` (post exact-key removal), so only UNRELATED
+  // identifiers reach the preserve-list.
+  const withoutIds = scrubbed.replace(UUID_RE, pre).replace(SHA256_RE, pre);
   let redacted = withoutIds;
-  if (exactKey) {
-    redacted = redacted.split(exactKey).join("[redacted]");
-  }
   // Broadened character class catches more credential shapes:
   //   - base64 padding (`=`, `+`, `/`)
   //   - JWT-style (`.` between header.payload.signature)
