@@ -75,7 +75,7 @@
     {
       "@type": "SoftwareApplication",
       "name": "Lightning Enable",
-      "operatingSystem": "Cross-platform (HTTP API; .NET, Node, Python middleware)",
+      "operatingSystem": "Cross-platform (HTTP API; .NET and Node middleware, Python coming soon)",
       "applicationCategory": "DeveloperApplication",
       "url": "https://www.lightningenable.com/",
       "publisher": { "@id": "https://www.lightningenable.com/#org" },
@@ -218,6 +218,13 @@
     proof, and your API checked the proof and served the response.
     No accounts, no sign-up, no card on file — just a tiny payment,
     a cryptographic receipt, and the response.
+  </p>
+  <p class="callout-cta">
+    Building the agent side? Install the MCP server —
+    <code>dotnet tool install -g LightningEnable.Mcp</code> or
+    <code>pip install lightning-enable-mcp</code> — and follow the
+    <a href="https://docs.lightningenable.com/products/l402-microtransactions/mcp-quickstart"
+       target="_blank" rel="noopener noreferrer">MCP quickstart</a>.
   </p>
 </section>
 
@@ -371,10 +378,13 @@ app.<span class="c-fn">get</span>(<span class="c-str">"/api/premium/data"</span>
       <p>
         L402 ecommerce on <strong>Shopify</strong> and
         <strong>Kentico</strong>. Live storefronts:
-        <a href="https://greatghee.com" target="_blank" rel="noopener noreferrer"><strong>Great Ghee</strong></a>
-        and
-        <a href="https://drinksote.com" target="_blank" rel="noopener noreferrer"><strong>Salt of the Earth</strong></a>
+        <a href="https://greatghee.com" target="_blank" rel="noopener noreferrer"><strong>Great Ghee</strong></a>,
+        <a href="https://drinksote.com" target="_blank" rel="noopener noreferrer"><strong>Salt of the Earth</strong></a>,
+        and our own
+        <a href="https://store.lightningenable.com" target="_blank" rel="noopener noreferrer"><strong>Lightning Enable Store</strong></a>
         — agents and bitcoin-aligned customers checking out in sats.
+        <a href="https://docs.lightningenable.com/products/shopify-commerce/overview"
+           target="_blank" rel="noopener noreferrer">Run this on your Shopify or Kentico store →</a>
       </p>
     </div>
     <div class="proof-card">
@@ -384,10 +394,22 @@ app.<span class="c-fn">get</span>(<span class="c-str">"/api/premium/data"</span>
         across the Lightning Network. Our
         <a href="https://github.com/refined-element/lightning-enable-mcp"
            target="_blank" rel="noopener noreferrer">MCP server</a>
-        and
+        (23 tools) and
         <a href="https://github.com/refined-element/l402-ts"
            target="_blank" rel="noopener noreferrer">HTTP clients</a>
-        are MIT, published on every major registry.
+        are MIT, published on every major registry — and
+        <a href="https://agent-commerce.store" target="_blank" rel="noopener noreferrer"><strong>agent-commerce.store</strong></a>
+        is a live L402 API marketplace built on the same rails.
+      </p>
+    </div>
+    <div class="proof-card">
+      <div class="proof-eyebrow">Agents hiring agents</div>
+      <p>
+        <strong>Agent Service Agreements</strong> are live: agents
+        discover, hire, and pay each other over Nostr — discover,
+        request, settle, attest — on our public relay
+        <a href="https://nostrwolfe.com" target="_blank" rel="noopener noreferrer"><strong>NostrWolfe</strong></a>
+        at <code>wss://agents.lightningenable.com</code>.
       </p>
     </div>
   </div>
@@ -424,7 +446,7 @@ app.<span class="c-fn">get</span>(<span class="c-str">"/api/premium/data"</span>
         <a class="cta-btc"
            href="https://refinedelement.com/checkout/lightning-enable/bitcoin"
            target="_blank" rel="noopener noreferrer"
-           title="Pay annually with Bitcoin and save 10%">
+           title="Pay monthly with Bitcoin and save 10%">
           ⚡ Pay with Bitcoin — 10% off
         </a>
       </div>
@@ -450,7 +472,7 @@ app.<span class="c-fn">get</span>(<span class="c-str">"/api/premium/data"</span>
         <a class="cta-btc"
            href="https://refinedelement.com/checkout/lightning-enable/bitcoin"
            target="_blank" rel="noopener noreferrer"
-           title="Pay annually with Bitcoin and save 10%">
+           title="Pay monthly with Bitcoin and save 10%">
           ⚡ Pay with Bitcoin — 10% off
         </a>
       </div>

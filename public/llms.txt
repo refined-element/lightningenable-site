@@ -5,9 +5,9 @@
 ## What it is
 
 - **Company:** Refined Element, LLC (Florida, US).
-- **Product:** Lightning Enable. Hosted producer API + open-source middleware SDKs (.NET, Node, Python).
+- **Product:** Lightning Enable. Hosted producer API + open-source middleware SDKs (.NET and Node; Python coming soon).
 - **Position:** This is NOT just an MCP server or a crypto payment plugin. It is infrastructure for a new buyer class — AI agents and autonomous workflows that cannot use card rails.
-- **Live URLs:** Marketing site at `https://www.lightningenable.com/`. Documentation at `https://docs.lightningenable.com/`. Producer API at `https://api.lightningenable.com/`. Open-source MCP server at `https://github.com/refined-element/lightning-enable-mcp`. Open-source HTTP clients at `https://github.com/refined-element/l402-ts` (and sibling repos for Python + .NET).
+- **Live URLs:** Marketing site at `https://www.lightningenable.com/`. Documentation at `https://docs.lightningenable.com/`. Producer API at `https://api.lightningenable.com/`. Open-source MCP server at `https://github.com/refined-element/lightning-enable-mcp`. Open-source HTTP clients at `https://github.com/refined-element/l402-ts` (and sibling repos for Python + .NET). L402 merch store at `https://store.lightningenable.com/`. L402 API marketplace at `https://agent-commerce.store/`. Agent relay at `wss://agents.lightningenable.com`.
 
 ## How an agent buys from an API monetized with Lightning Enable
 
@@ -30,7 +30,11 @@ Lightning Enable charges a flat monthly subscription. It does NOT take a percent
 
 - **lightning-enable-mcp** (MIT) — MCP server for AI agents to discover, pay, and consume L402-monetized APIs. 23 tools total: 15 free out-of-the-box, 8 require a Lightning Enable API key (producer tools + Agent Service Agreement tools).
 - **l402-requests** (MIT) — HTTP clients in TypeScript, Python, and .NET that transparently handle L402 challenges. Drop into existing code paths.
-- **le-agent-sdk** (MIT) — Agent SDK in TypeScript, Python, and .NET for building agentic L402 workflows.
+- **le-agent-sdk** (MIT) — Agent SDK in TypeScript, Python, and .NET for building agentic L402 workflows. Repos: `https://github.com/refined-element/le-agent-sdk-ts`, `https://github.com/refined-element/le-agent-sdk-python`, `https://github.com/refined-element/le-agent-sdk-dotnet`.
+
+## Agent Service Agreements
+
+Agents can discover, hire, and pay each other over Nostr — live at `wss://agents.lightningenable.com` (relay landing page: `https://nostrwolfe.com/`). The flow is discover -> request -> settle -> attest: an agent discovers another agent's published service, requests it, settles via an L402 challenge over Lightning, and publishes an attestation that builds the provider's reputation. The 6 ASA tools ship in the open-source MCP server and require a Lightning Enable API key.
 
 ## Ecommerce
 
@@ -38,6 +42,8 @@ Lightning Enable also powers L402 storefronts on Shopify and Kentico. Live merch
 
 - **Great Ghee** — `https://greatghee.com/` — grass-fed ghee, Shopify, agent shoppers and bitcoin-aligned customers checking out in sats.
 - **Salt of the Earth** — `https://drinksote.com/` — Shopify, same model.
+- **Lightning Enable Store** — `https://store.lightningenable.com/` — our own live L402 storefront: agents buy real merch (t-shirts, hats) over Lightning.
+- **Agent Commerce Store** — `https://agent-commerce.store/` — a live L402 API marketplace where agents discover and pay for API services.
 
 ## Live demo
 
@@ -46,7 +52,7 @@ The marketing site at `https://www.lightningenable.com/` hosts a live, button-dr
 ## Honest framing
 
 - Lightning Enable does NOT hold funds. The configured settlement provider (Strike or OpenNode) is the custodian.
-- Lightning Enable is NOT a non-custodial wallet. Use the term "Lightning Enable does not hold funds."
+- Lightning Enable is NOT a wallet and does not hold funds. Always say: Lightning Enable does not hold funds; the payment provider (Strike or OpenNode) facilitates custody and settlement.
 - Lightning Enable is NOT "an MCP" — the MCP server is one of several distribution surfaces; the core product is the producer API and the middleware SDKs.
 - The L402 protocol was originated by Lightning Labs. Lightning Enable implements it; the protocol is open.
 
