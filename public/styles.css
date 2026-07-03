@@ -807,6 +807,27 @@ pre.code {
   margin: 0 auto;
 }
 .callout-text strong { color: var(--bolt); }
+/* Agent-builder CTA line under the explainer — supporting context,
+ * not a competing headline, so it sits in the dim color with the
+ * install commands rendered as small mono chips. */
+.callout-cta {
+  margin: 1.5rem auto 0;
+  max-width: 62ch;
+  font-size: 0.9rem;
+  line-height: 1.8;
+  color: var(--dim);
+}
+.callout-cta code {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 0.85em;
+  background: var(--bg);
+  border: 1px solid var(--border);
+  border-radius: 4px;
+  padding: 0.15rem 0.4rem;
+  color: var(--white);
+  white-space: nowrap;
+}
+.callout-cta a { color: var(--bolt); }
 
 /* ─── Why-now section ─── */
 /* Uses the standard .section scaffolding; stacks 4 lede paragraphs
@@ -846,6 +867,11 @@ pre.code {
 }
 .proof-card p strong { color: var(--white); }
 .proof-card a { color: var(--bolt); }
+.proof-card code {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 0.85em;
+  word-break: break-all;
+}
 .proof-eyebrow {
   font-size: 0.75rem;
   font-weight: 700;
