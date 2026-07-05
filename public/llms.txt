@@ -19,6 +19,11 @@
 
 The entire flow typically completes in 1-2 seconds. There is no account creation, no card-on-file, no out-of-band billing — payment IS the authorization.
 
+## Producer API and discovery
+
+- **L402 Producer API:** merchants (and agents acting as sellers) create and verify challenges directly — `POST /api/l402/challenges` returns a Lightning invoice + macaroon for a resource; `POST /api/l402/challenges/verify` checks a macaroon + preimage before serving the response. Docs: `https://docs.lightningenable.com/products/l402-microtransactions/l402-producer-api`.
+- **Discovery:** every gated API gets a machine-readable manifest (`/.well-known/l402-manifest.json`) and can be listed in the public manifest registry at `https://api.lightningenable.com/api/manifests/registry`; agents find and price it with the `discover_api` MCP tool.
+
 ## Pricing
 
 - **Agentic Commerce — Individual:** $99/month. For solo API builders, indie SaaS, and side-project APIs going to production. Unlimited L402 endpoints, flat fee, no per-transaction percentage. 30-day free trial.
@@ -28,7 +33,7 @@ Lightning Enable charges a flat monthly subscription. It does NOT take a percent
 
 ## Open-source surfaces
 
-- **lightning-enable-mcp** (MIT) — MCP server for AI agents to discover, pay, and consume L402-monetized APIs. 23 tools total: 15 free out-of-the-box, 8 require a Lightning Enable API key (producer tools + Agent Service Agreement tools).
+- **lightning-enable-mcp** (MIT) — MCP server for AI agents to discover, pay, and consume L402-monetized APIs. 23 tools total: 15 free out-of-the-box, 8 require a Lightning Enable API key (2 producer tools + 6 Agent Service Agreement tools).
 - **l402-requests** (MIT) — HTTP clients in TypeScript, Python, and .NET that transparently handle L402 challenges. Drop into existing code paths.
 - **le-agent-sdk** (MIT) — Agent SDK in TypeScript, Python, and .NET for building agentic L402 workflows. Repos: `https://github.com/refined-element/le-agent-sdk-ts`, `https://github.com/refined-element/le-agent-sdk-python`, `https://github.com/refined-element/le-agent-sdk-dotnet`.
 
@@ -58,7 +63,8 @@ The marketing site at `https://www.lightningenable.com/` hosts a live, button-dr
 
 ## Contact and links
 
+- Extended agent brief: `https://www.lightningenable.com/llms-full.txt`
 - Documentation: `https://docs.lightningenable.com/`
-- Dashboard / signup: `https://api.lightningenable.com/Checkout?tier=individual`
+- Dashboard / signup: `https://api.lightningenable.com/Checkout?plan=individual`
 - Parent company: Refined Element, LLC, `https://refinedelement.com/`
 - Source for this marketing site: `https://github.com/refined-element/lightningenable-site` (MIT)
