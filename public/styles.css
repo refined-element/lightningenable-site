@@ -870,8 +870,14 @@ pre.code {
 }
 .proof-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+  grid-template-columns: 1fr; /* mobile: single column */
   gap: 1.25rem;
+}
+/* 4 proof cards → clean 2x2 on desktop (was `auto-fit, minmax(260px)` which
+   fit 3 columns at the container width and left the 4th card orphaned).
+   Defined AFTER the base rule so it wins in source order at >=760px. */
+@media (min-width: 760px) {
+  .proof-grid { grid-template-columns: repeat(2, 1fr); }
 }
 .proof-card {
   background: var(--panel);
