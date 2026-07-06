@@ -810,6 +810,9 @@ pre.code {
   padding-top: 4rem;
   padding-bottom: 4rem;
   text-align: center;
+  /* No top divider: this is the demo's one-sentence takeaway, so let it flow
+     out of the demo above rather than reading as a separate boxed section. */
+  border-top: none;
 }
 .callout-eyebrow {
   font-size: 0.85rem;
@@ -820,8 +823,8 @@ pre.code {
   margin-bottom: 1rem;
 }
 .callout-text {
-  font-size: clamp(1.15rem, 2vw, 1.45rem);
-  line-height: 1.55;
+  font-size: clamp(1.05rem, 1.7vw, 1.25rem);
+  line-height: 1.6;
   color: var(--white);
   max-width: 62ch;
   margin: 0 auto;
