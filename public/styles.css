@@ -501,6 +501,26 @@ pre.code {
 }
 .repo-link { font-family: 'JetBrains Mono', monospace; font-size: 0.85rem; }
 
+/* Producer-API pointer under the install rows — same dim lede voice
+   as the section intro; endpoint paths render as the same small mono
+   chips used by .callout-cta code. Shared with the discovery section
+   below, which puts the manifest path + tool name in the same chips. */
+.producer-api-note {
+  margin-top: 2rem;
+  margin-bottom: 0;
+}
+.producer-api-note code,
+.section-discover .section-lede code {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 0.85em;
+  background: var(--bg);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  padding: 0.15rem 0.4rem;
+  color: var(--white);
+  white-space: nowrap;
+}
+
 /* ─── Dashboard section ───────────────────────────────── */
 .dashboard-grid {
   display: grid;
