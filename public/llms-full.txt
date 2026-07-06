@@ -41,7 +41,7 @@ Two ways to gate a route:
 - Both endpoints authenticate with your merchant API key (`X-API-Key`).
 - **Idempotency:** the same resource + price within 60 seconds returns the same invoice, so rapid duplicate requests cannot double-charge a buyer.
 
-Docs: `https://docs.lightningenable.com/products/l402-microtransactions/l402-producer-api`.
+Docs: `https://docs.lightningenable.com/products/agentic-commerce/l402-producer-api`.
 
 The same two capabilities are exposed as MCP tools (`create_l402_challenge`, `verify_l402_payment`), which means an agent can act as a **seller** — minting challenges for its own services — not just a buyer.
 

@@ -21,7 +21,7 @@ The entire flow typically completes in 1-2 seconds. There is no account creation
 
 ## Producer API and discovery
 
-- **L402 Producer API:** merchants (and agents acting as sellers) create and verify challenges directly — `POST /api/l402/challenges` returns a Lightning invoice + macaroon for a resource; `POST /api/l402/challenges/verify` checks a macaroon + preimage before serving the response. Docs: `https://docs.lightningenable.com/products/l402-microtransactions/l402-producer-api`.
+- **L402 Producer API:** merchants (and agents acting as sellers) create and verify challenges directly — `POST /api/l402/challenges` returns a Lightning invoice + macaroon for a resource; `POST /api/l402/challenges/verify` checks a macaroon + preimage before serving the response. Docs: `https://docs.lightningenable.com/products/agentic-commerce/l402-producer-api`.
 - **Discovery:** every gated API gets a machine-readable manifest (`/.well-known/l402-manifest.json`) and can be listed in the public manifest registry at `https://api.lightningenable.com/api/manifests/registry`; agents find and price it with the `discover_api` MCP tool.
 
 ## Pricing
