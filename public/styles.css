@@ -275,6 +275,15 @@ a:hover { text-decoration: underline; }
   border-radius: var(--radius);
   padding: clamp(1.5rem, 3vw, 2.5rem);
 }
+/* Label above the endpoint cards so visitors read them as a "pick one"
+   control, not two info cards. Matches the CITY:/CURRENCY: param labels. */
+.pick-label {
+  font-size: 0.85rem;
+  color: var(--dim);
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  margin-bottom: 0.75rem;
+}
 .try-row {
   display: flex;
   gap: 1rem;
