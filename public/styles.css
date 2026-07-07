@@ -929,3 +929,237 @@ pre.code {
   line-height: 1.5;
   margin: 0.5rem 0 1.25rem;
 }
+
+/* ─── Hero two-sided split (agent vs producer) ─── */
+/* Two compact supporting lines under the hero-sub that make the
+ * two-sided product legible before the fold, without bloating the
+ * headline. Stacks on mobile, sits side-by-side on wider screens. */
+.hero-split {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 0.75rem;
+  max-width: 62ch;
+  margin: 0 auto 2.25rem;
+  text-align: left;
+}
+@media (min-width: 720px) {
+  .hero-split { grid-template-columns: 1fr 1fr; gap: 1.25rem; }
+}
+.hero-split span {
+  display: block;
+  background: var(--panel);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  padding: 0.85rem 1rem;
+  color: var(--dim);
+  font-size: 0.92rem;
+  line-height: 1.5;
+}
+.hero-split strong { color: var(--bolt); font-weight: 700; }
+
+/* ─── Two-sides section (agent vs producer cards) ─── */
+.split-grid {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 1.5rem;
+}
+@media (min-width: 720px) {
+  .split-grid { grid-template-columns: 1fr 1fr; }
+}
+.split-card {
+  background: var(--panel);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 2rem;
+  display: flex;
+  flex-direction: column;
+  transition: border-color 0.2s, transform 0.2s;
+}
+.split-card:hover { border-color: var(--bolt); transform: translateY(-2px); }
+.split-eyebrow {
+  font-size: 0.75rem;
+  font-weight: 700;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--bolt);
+  margin-bottom: 0.6rem;
+}
+.split-heading {
+  font-size: 1.35rem;
+  font-weight: 900;
+  letter-spacing: -0.01em;
+  margin-bottom: 1.1rem;
+  color: var(--white);
+}
+.split-list {
+  list-style: none;
+  margin-bottom: 1.5rem;
+}
+.split-list li {
+  padding: 0.4rem 0;
+  color: var(--dim);
+}
+.split-list li::before {
+  content: '';
+  display: inline-block;
+  width: 6px; height: 6px;
+  background: var(--bolt);
+  border-radius: 50%;
+  margin-right: 0.75rem;
+  vertical-align: middle;
+}
+.split-cta {
+  margin-top: auto;
+  align-self: flex-start;
+}
+
+/* ─── Pricing subheads (Start three ways / Production plans) ─── */
+.pricing-subhead {
+  font-size: 1.25rem;
+  font-weight: 900;
+  letter-spacing: -0.01em;
+  margin: 0.5rem 0 0.75rem;
+  color: var(--white);
+}
+.pricing-subhead-plans {
+  margin-top: 3rem;
+  padding-top: 2.5rem;
+  border-top: 1px solid var(--border);
+}
+.onboarding-note {
+  color: var(--dim);
+  font-size: 0.95rem;
+  line-height: 1.55;
+  max-width: 65ch;
+  margin-bottom: 2rem;
+}
+.onboarding-note strong { color: var(--white); }
+
+/* ─── Start-three-ways on-ramps ─── */
+/* Deliberately lighter than the .pricing-card plan cards below: a single
+ * horizontal band of 3 slim tiles that read as "ways to get started,"
+ * not as comparable price plans. No big amount, condensed type, muted
+ * surface. Stacks on mobile. */
+.onboarding-strip {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 0.75rem;
+  margin-bottom: 0.5rem;
+}
+@media (min-width: 720px) {
+  .onboarding-strip { grid-template-columns: repeat(3, 1fr); }
+}
+.onboarding-tile {
+  background: var(--panel-2);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  padding: 1rem 1.1rem 1.1rem;
+  display: flex;
+  flex-direction: column;
+  transition: border-color 0.15s;
+}
+.onboarding-tile:hover { border-color: var(--border-strong); }
+.onboarding-tile-head {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  margin-bottom: 0.5rem;
+}
+.onboarding-tile-name {
+  font-size: 0.95rem;
+  font-weight: 700;
+  color: var(--white);
+  letter-spacing: -0.005em;
+}
+.onboarding-tile-meta {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 0.72rem;
+  color: var(--bolt);
+  letter-spacing: 0.01em;
+  margin-bottom: 0.5rem;
+}
+.onboarding-tile-desc {
+  font-size: 0.82rem;
+  line-height: 1.5;
+  color: var(--dim);
+  margin-bottom: 0.9rem;
+}
+.onboarding-tile-cta {
+  margin-top: auto;
+  align-self: flex-start;
+  font-size: 0.82rem;
+  font-weight: 700;
+  color: var(--bolt);
+  text-decoration: none;
+}
+.onboarding-tile-cta:hover { text-decoration: underline; }
+/* Not-yet-live on-ramp: rendered as a <span>, muted + non-interactive so
+ * there's no dead link to a flow that isn't built. At go-live, swap for
+ * an <a href="…real signup endpoint…"> and drop the "Soon" badge. */
+.onboarding-tile-cta.is-soon {
+  color: var(--dim);
+  cursor: not-allowed;
+}
+.onboarding-tile-cta.is-soon:hover { text-decoration: none; }
+
+/* "Soon" pill — signals the on-ramp isn't publicly enabled yet, so no
+ * copy falsely claims it's live before the feature flag flips. */
+.badge-soon {
+  display: inline-block;
+  vertical-align: middle;
+  padding: 0.1rem 0.45rem;
+  border-radius: 999px;
+  background: var(--bolt-soft);
+  border: 1px solid var(--bolt);
+  color: var(--bolt);
+  font-size: 0.58rem;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+}
+
+/* ─── FAQ ─── */
+.faq-list {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 0.75rem;
+  max-width: 72ch;
+}
+.faq-item {
+  background: var(--panel);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  padding: 0 1.25rem;
+  transition: border-color 0.2s;
+}
+.faq-item[open] { border-color: var(--border-strong); }
+.faq-item summary {
+  cursor: pointer;
+  list-style: none;
+  padding: 1.1rem 0;
+  font-weight: 700;
+  color: var(--white);
+  font-size: 1rem;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+}
+.faq-item summary::-webkit-details-marker { display: none; }
+.faq-item summary::after {
+  content: '+';
+  color: var(--bolt);
+  font-size: 1.3rem;
+  font-weight: 400;
+  line-height: 1;
+  transition: transform 0.2s;
+}
+.faq-item[open] summary::after { content: '−'; }
+.faq-item p {
+  color: var(--dim);
+  font-size: 0.95rem;
+  line-height: 1.6;
+  padding: 0 0 1.2rem;
+  margin: 0;
+}
+.faq-item p strong { color: var(--white); }
