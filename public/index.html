@@ -134,6 +134,16 @@
     your existing API — your subscriptions, rate limits, and API keys
     stay exactly as they are.
   </p>
+  <div class="hero-split" aria-label="Two sides of Lightning Enable">
+    <span>
+      <strong>For API builders:</strong> create L402 producer endpoints
+      and get paid per request.
+    </span>
+    <span>
+      <strong>For agents:</strong> install the free, open-source MCP with
+      Strike or NWC — no hosted MCP, no Lightning node required.
+    </span>
+  </div>
   <div class="hero-ctas">
     <a href="#try" class="cta cta-primary">⚡ Run the agent</a>
     <a href="https://api.lightningenable.com/Checkout?plan=individual" class="cta cta-ghost" target="_blank" rel="noopener noreferrer">Start free trial</a>
@@ -227,6 +237,49 @@
     <a href="https://docs.lightningenable.com/products/agentic-commerce/mcp-quickstart"
        target="_blank" rel="noopener noreferrer">MCP quickstart</a>.
   </p>
+</section>
+
+<!-- ─── Two sides of the rail (agent vs producer) ─── -->
+<section id="two-sides" class="section section-split">
+  <h2 class="section-title">Two sides of the same rail.</h2>
+  <p class="section-lede">
+    Lightning Enable is the easiest way to make agents and APIs speak
+    L402 — no node, no hosted MCP, just Strike or NWC. Agents need
+    something to pay for; builders need agents that can pay. Both sides
+    run on the same rail.
+  </p>
+
+  <div class="split-grid">
+    <div class="split-card">
+      <div class="split-eyebrow">For agents</div>
+      <h3 class="split-heading">Free, open-source MCP.</h3>
+      <ul class="split-list">
+        <li>Free open-source MCP (MIT)</li>
+        <li>Connect Strike or NWC</li>
+        <li>Pay and access L402 APIs</li>
+        <li>Works from MCP hosts like Hermes</li>
+        <li>No hosted MCP or Lightning node required</li>
+      </ul>
+      <a class="cta cta-ghost split-cta"
+         href="https://github.com/refined-element/lightning-enable-mcp"
+         target="_blank" rel="noopener noreferrer">Install the MCP</a>
+    </div>
+
+    <div class="split-card">
+      <div class="split-eyebrow">For API builders</div>
+      <h3 class="split-heading">Get paid per request.</h3>
+      <ul class="split-list">
+        <li>Create L402 producer endpoints</li>
+        <li>Return HTTP 402 challenges</li>
+        <li>Accept Lightning payment</li>
+        <li>Verify the macaroon proof</li>
+        <li>Serve paid access</li>
+      </ul>
+      <a class="cta cta-ghost split-cta"
+         href="https://docs.lightningenable.com/products/agentic-commerce/l402-producer-api"
+         target="_blank" rel="noopener noreferrer">Create a producer endpoint</a>
+    </div>
+  </div>
 </section>
 
 <!-- ─── Why now ─── -->
@@ -482,6 +535,95 @@ app.<span class="c-fn">get</span>(<span class="c-str">"/api/premium/data"</span>
     provider (Strike or OpenNode) custodies every payment.
   </p>
 
+  <!-- ─── Start three ways ─── -->
+  <h3 class="pricing-subhead">Start three ways.</h3>
+  <p class="onboarding-note">
+    <strong>Free Producer Sandbox</strong> and <strong>L402 Fast Lane</strong>
+    are rolling out — the Stripe trial is available today. Free is the
+    sandbox. Fast Lane is the no-card full trial. Stripe is the
+    conventional card trial.
+  </p>
+
+  <div class="onboarding-grid">
+    <!-- Card 1 — Free Producer Sandbox (launching soon) -->
+    <div class="pricing-card onboarding-card">
+      <div class="pricing-name">
+        Free Producer Sandbox
+        <span class="badge-soon">Launching soon</span>
+      </div>
+      <div class="pricing-amount">$0<span class="pricing-period">/mo</span></div>
+      <p class="pricing-sub">No credit card</p>
+      <p class="pricing-who">
+        Create your first L402 producer endpoints and prove the basics.
+      </p>
+      <ul class="pricing-features">
+        <li>3 L402 endpoints</li>
+        <li>200 challenges / month</li>
+        <li>Up to 100 sats per challenge</li>
+        <li>1 proxy config</li>
+        <li>1 merchant, environment, and webhook endpoint</li>
+      </ul>
+      <p class="pricing-upgrade-note">
+        Upgrade for analytics, Shopify, registry listing, custom
+        branding, SLA, support, and higher limits.
+      </p>
+      <div class="pricing-actions">
+        <span class="cta cta-ghost cta-soon" aria-disabled="true">Start free</span>
+      </div>
+    </div>
+
+    <!-- Card 2 — L402 Fast Lane (launching soon). NOTE: this is NOT the
+         "Pay with Bitcoin — 10% off" subscription discount below. Fast
+         Lane pays a 100-sat L402 challenge to unlock a no-card trial. -->
+    <div class="pricing-card onboarding-card onboarding-card-featured">
+      <div class="pricing-name">
+        L402 Fast Lane
+        <span class="badge-soon">Launching soon</span>
+      </div>
+      <div class="pricing-amount">100<span class="pricing-period"> sats</span></div>
+      <p class="pricing-sub">No credit card</p>
+      <p class="pricing-who">
+        Pay a 100-sat L402 challenge to unlock a 30-day Individual trial.
+      </p>
+      <ul class="pricing-features">
+        <li>Full Individual plan for 30 days</li>
+        <li>No card, no Stripe checkout</li>
+        <li>Signup itself runs on L402:
+          402 → Lightning payment → macaroon proof → account activated</li>
+        <li>Moves to the Free Producer Sandbox after 30 days unless
+          billing is added</li>
+      </ul>
+      <div class="pricing-actions">
+        <span class="cta cta-ghost cta-soon" aria-disabled="true">Activate with Lightning</span>
+      </div>
+    </div>
+
+    <!-- Card 3 — Stripe Trial (live today) -->
+    <div class="pricing-card onboarding-card">
+      <div class="pricing-name">Stripe Trial</div>
+      <div class="pricing-amount">30<span class="pricing-period"> days</span></div>
+      <p class="pricing-sub">Credit card required</p>
+      <p class="pricing-who">
+        Start a conventional 30-day Individual trial through Stripe
+        Checkout. No charge until the trial ends.
+      </p>
+      <ul class="pricing-features">
+        <li>Full Individual plan for 30 days</li>
+        <li>Card on file via Stripe Checkout</li>
+        <li>Converts to $99/mo when the trial ends</li>
+        <li>Cancel anytime before the trial ends</li>
+      </ul>
+      <div class="pricing-actions">
+        <a class="cta cta-primary"
+           href="https://api.lightningenable.com/Checkout?plan=individual"
+           target="_blank" rel="noopener noreferrer">Start trial</a>
+      </div>
+    </div>
+  </div>
+
+  <!-- ─── Production plans ─── -->
+  <h3 class="pricing-subhead pricing-subhead-plans">Production plans.</h3>
+
   <div class="pricing-grid">
     <div class="pricing-card">
       <div class="pricing-name">Agentic Commerce — Individual</div>
@@ -495,7 +637,7 @@ app.<span class="c-fn">get</span>(<span class="c-str">"/api/premium/data"</span>
         <li>Strike as settlement provider</li>
         <li>Per-endpoint pricing — different routes can charge different rates</li>
         <li>Live dashboard + per-request payment feed</li>
-        <li>30-day free trial</li>
+        <li>30-day free trial — card required (a no-card L402 Fast Lane trial is rolling out)</li>
       </ul>
       <div class="pricing-actions">
         <a class="cta cta-primary"
@@ -521,7 +663,7 @@ app.<span class="c-fn">get</span>(<span class="c-str">"/api/premium/data"</span>
         <li><strong>Strike <em>or</em> OpenNode</strong> as settlement provider</li>
         <li><strong>White-glove onboarding</strong> — we help you get set up</li>
         <li><strong>Direct founder access</strong> — no ticket queues, talk to the team that built this</li>
-        <li>30-day free trial</li>
+        <li>30-day free trial — card required (a no-card L402 Fast Lane trial is rolling out)</li>
       </ul>
       <div class="pricing-actions">
         <a class="cta cta-primary"
@@ -541,6 +683,96 @@ app.<span class="c-fn">get</span>(<span class="c-str">"/api/premium/data"</span>
     Lightning Enable does not hold funds. Your chosen settlement provider
     (Strike or OpenNode) custodies every payment.
   </p>
+</section>
+
+<!-- ─── FAQ ─── -->
+<section id="faq" class="section section-faq">
+  <h2 class="section-title">Onboarding FAQ.</h2>
+  <p class="section-lede">
+    The free open-source MCP is live today. The
+    <strong>Free Producer Sandbox</strong> and
+    <strong>L402 Fast Lane</strong> are rolling out — here's how they work.
+  </p>
+
+  <div class="faq-list">
+    <details class="faq-item">
+      <summary>Is the MCP free?</summary>
+      <p>
+        Yes. The Lightning Enable MCP server is open-source (MIT) and free
+        to install. Connect Strike or NWC and your agent can pay and access
+        L402 APIs — no hosted MCP and no Lightning node required.
+      </p>
+    </details>
+
+    <details class="faq-item">
+      <summary>What is the Free Producer Sandbox?</summary>
+      <p>
+        A no-card way to create your first L402 producer endpoints. It
+        includes 3 endpoints, limited monthly challenge volume, and a
+        100-sat max challenge price — free enough to prove L402 works,
+        paid when it becomes production infrastructure. Sandbox limits may
+        change as the product evolves; existing users get notice before
+        material changes.
+      </p>
+    </details>
+
+    <details class="faq-item">
+      <summary>What is L402 Fast Lane?</summary>
+      <p>
+        A Bitcoin-native signup path. Pay a 100-sat L402 challenge to
+        activate a 30-day Individual trial without a credit card. The
+        signup flow itself runs on L402: 402 → Lightning payment →
+        macaroon proof → account activated.
+      </p>
+    </details>
+
+    <details class="faq-item">
+      <summary>Why use L402 Fast Lane if the Free Sandbox exists?</summary>
+      <p>
+        Free is the sandbox. Fast Lane is the no-card full trial. The Free
+        Sandbox lets you create a few L402 endpoints with limited usage.
+        Fast Lane unlocks the full Individual plan for 30 days without a
+        credit card.
+      </p>
+    </details>
+
+    <details class="faq-item">
+      <summary>How is Fast Lane different from "Pay with Bitcoin — 10% off"?</summary>
+      <p>
+        They're two different things. <strong>Pay with Bitcoin — 10% off</strong>
+        means paying an actual subscription with Bitcoin instead of a card,
+        for a discount. <strong>L402 Fast Lane</strong> means paying a
+        100-sat L402 challenge to activate a no-card 30-day trial.
+      </p>
+    </details>
+
+    <details class="faq-item">
+      <summary>Why require a Lightning payment for the no-card trial?</summary>
+      <p>
+        It proves wallet and payment capability, reduces low-effort abuse,
+        and lets you experience the same L402 flow your own users and
+        agents will use. Use Lightning to activate the Lightning-native
+        trial.
+      </p>
+    </details>
+
+    <details class="faq-item">
+      <summary>What happens after the L402 Fast Lane trial?</summary>
+      <p>
+        Add billing to keep Individual features. Otherwise, the account
+        automatically moves to the Free Producer Sandbox.
+      </p>
+    </details>
+
+    <details class="faq-item">
+      <summary>What if I already have an account?</summary>
+      <p>
+        Sign in first. Fast Lane is for creating or activating an account;
+        paying with an email that already belongs to an account will not
+        create a second account.
+      </p>
+    </details>
+  </div>
 </section>
 
 <!-- ─── Footer ─── -->

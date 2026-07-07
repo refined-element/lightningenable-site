@@ -929,3 +929,211 @@ pre.code {
   line-height: 1.5;
   margin: 0.5rem 0 1.25rem;
 }
+
+/* ─── Hero two-sided split (agent vs producer) ─── */
+/* Two compact supporting lines under the hero-sub that make the
+ * two-sided product legible before the fold, without bloating the
+ * headline. Stacks on mobile, sits side-by-side on wider screens. */
+.hero-split {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 0.75rem;
+  max-width: 62ch;
+  margin: 0 auto 2.25rem;
+  text-align: left;
+}
+@media (min-width: 720px) {
+  .hero-split { grid-template-columns: 1fr 1fr; gap: 1.25rem; }
+}
+.hero-split span {
+  display: block;
+  background: var(--panel);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  padding: 0.85rem 1rem;
+  color: var(--dim);
+  font-size: 0.92rem;
+  line-height: 1.5;
+}
+.hero-split strong { color: var(--bolt); font-weight: 700; }
+
+/* ─── Two-sides section (agent vs producer cards) ─── */
+.split-grid {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 1.5rem;
+}
+@media (min-width: 720px) {
+  .split-grid { grid-template-columns: 1fr 1fr; }
+}
+.split-card {
+  background: var(--panel);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 2rem;
+  display: flex;
+  flex-direction: column;
+  transition: border-color 0.2s, transform 0.2s;
+}
+.split-card:hover { border-color: var(--bolt); transform: translateY(-2px); }
+.split-eyebrow {
+  font-size: 0.75rem;
+  font-weight: 700;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--bolt);
+  margin-bottom: 0.6rem;
+}
+.split-heading {
+  font-size: 1.35rem;
+  font-weight: 900;
+  letter-spacing: -0.01em;
+  margin-bottom: 1.1rem;
+  color: var(--white);
+}
+.split-list {
+  list-style: none;
+  margin-bottom: 1.5rem;
+}
+.split-list li {
+  padding: 0.4rem 0;
+  color: var(--dim);
+}
+.split-list li::before {
+  content: '';
+  display: inline-block;
+  width: 6px; height: 6px;
+  background: var(--bolt);
+  border-radius: 50%;
+  margin-right: 0.75rem;
+  vertical-align: middle;
+}
+.split-cta {
+  margin-top: auto;
+  align-self: flex-start;
+}
+
+/* ─── Pricing subheads (Start three ways / Production plans) ─── */
+.pricing-subhead {
+  font-size: 1.25rem;
+  font-weight: 900;
+  letter-spacing: -0.01em;
+  margin: 0.5rem 0 0.75rem;
+  color: var(--white);
+}
+.pricing-subhead-plans {
+  margin-top: 3rem;
+  padding-top: 2.5rem;
+  border-top: 1px solid var(--border);
+}
+.onboarding-note {
+  color: var(--dim);
+  font-size: 0.95rem;
+  line-height: 1.55;
+  max-width: 65ch;
+  margin-bottom: 2rem;
+}
+.onboarding-note strong { color: var(--white); }
+
+/* ─── Start-three-ways onboarding cards ─── */
+/* Reuses .pricing-card look; 3 columns on desktop, stacks on mobile. */
+.onboarding-grid {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 1.5rem;
+  margin-bottom: 1rem;
+}
+@media (min-width: 860px) {
+  .onboarding-grid { grid-template-columns: repeat(3, 1fr); }
+}
+.onboarding-card-featured {
+  background: linear-gradient(180deg, var(--bolt-soft), var(--panel));
+  border-color: var(--bolt);
+}
+/* "No credit card" / "Credit card required" line under the amount. */
+.pricing-sub {
+  color: var(--dim);
+  font-size: 0.85rem;
+  font-weight: 600;
+  letter-spacing: 0.02em;
+  margin: -0.75rem 0 1rem;
+}
+.pricing-upgrade-note {
+  color: var(--dim-2);
+  font-size: 0.82rem;
+  line-height: 1.5;
+  margin: 1rem 0 0;
+}
+/* "Launching soon" pill — signals the lane isn't publicly enabled yet
+ * so no copy falsely claims it's live before the feature flag flips. */
+.badge-soon {
+  display: inline-block;
+  vertical-align: middle;
+  margin-left: 0.5rem;
+  padding: 0.15rem 0.55rem;
+  border-radius: 999px;
+  background: var(--bolt-soft);
+  border: 1px solid var(--bolt);
+  color: var(--bolt);
+  font-size: 0.62rem;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+}
+/* Non-clickable CTA for not-yet-live lanes — rendered as a <span>, so
+ * there's no dead link to a flow that doesn't exist yet. At go-live,
+ * swap for an <a href="…real signup endpoint…"> and drop the badge. */
+.cta-soon {
+  cursor: not-allowed;
+  opacity: 0.7;
+  justify-content: center;
+  width: 100%;
+  border-style: dashed;
+}
+.cta-soon:hover { border-color: var(--border-strong); color: var(--white); }
+
+/* ─── FAQ ─── */
+.faq-list {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 0.75rem;
+  max-width: 72ch;
+}
+.faq-item {
+  background: var(--panel);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  padding: 0 1.25rem;
+  transition: border-color 0.2s;
+}
+.faq-item[open] { border-color: var(--border-strong); }
+.faq-item summary {
+  cursor: pointer;
+  list-style: none;
+  padding: 1.1rem 0;
+  font-weight: 700;
+  color: var(--white);
+  font-size: 1rem;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+}
+.faq-item summary::-webkit-details-marker { display: none; }
+.faq-item summary::after {
+  content: '+';
+  color: var(--bolt);
+  font-size: 1.3rem;
+  font-weight: 400;
+  line-height: 1;
+  transition: transform 0.2s;
+}
+.faq-item[open] summary::after { content: '−'; }
+.faq-item p {
+  color: var(--dim);
+  font-size: 0.95rem;
+  line-height: 1.6;
+  padding: 0 0 1.2rem;
+  margin: 0;
+}
+.faq-item p strong { color: var(--white); }
