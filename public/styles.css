@@ -1035,62 +1035,88 @@ pre.code {
 }
 .onboarding-note strong { color: var(--white); }
 
-/* ─── Start-three-ways onboarding cards ─── */
-/* Reuses .pricing-card look; 3 columns on desktop, stacks on mobile. */
-.onboarding-grid {
+/* ─── Start-three-ways on-ramps ─── */
+/* Deliberately lighter than the .pricing-card plan cards below: a single
+ * horizontal band of 3 slim tiles that read as "ways to get started,"
+ * not as comparable price plans. No big amount, condensed type, muted
+ * surface. Stacks on mobile. */
+.onboarding-strip {
   display: grid;
   grid-template-columns: 1fr;
-  gap: 1.5rem;
-  margin-bottom: 1rem;
+  gap: 0.75rem;
+  margin-bottom: 0.5rem;
 }
-@media (min-width: 860px) {
-  .onboarding-grid { grid-template-columns: repeat(3, 1fr); }
+@media (min-width: 720px) {
+  .onboarding-strip { grid-template-columns: repeat(3, 1fr); }
 }
-.onboarding-card-featured {
-  background: linear-gradient(180deg, var(--bolt-soft), var(--panel));
-  border-color: var(--bolt);
+.onboarding-tile {
+  background: var(--panel-2);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  padding: 1rem 1.1rem 1.1rem;
+  display: flex;
+  flex-direction: column;
+  transition: border-color 0.15s;
 }
-/* "No credit card" / "Credit card required" line under the amount. */
-.pricing-sub {
-  color: var(--dim);
-  font-size: 0.85rem;
-  font-weight: 600;
-  letter-spacing: 0.02em;
-  margin: -0.75rem 0 1rem;
+.onboarding-tile:hover { border-color: var(--border-strong); }
+.onboarding-tile-head {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  margin-bottom: 0.5rem;
 }
-.pricing-upgrade-note {
-  color: var(--dim-2);
+.onboarding-tile-name {
+  font-size: 0.95rem;
+  font-weight: 700;
+  color: var(--white);
+  letter-spacing: -0.005em;
+}
+.onboarding-tile-meta {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 0.72rem;
+  color: var(--bolt);
+  letter-spacing: 0.01em;
+  margin-bottom: 0.5rem;
+}
+.onboarding-tile-desc {
   font-size: 0.82rem;
   line-height: 1.5;
-  margin: 1rem 0 0;
+  color: var(--dim);
+  margin-bottom: 0.9rem;
 }
-/* "Launching soon" pill — signals the lane isn't publicly enabled yet
- * so no copy falsely claims it's live before the feature flag flips. */
+.onboarding-tile-cta {
+  margin-top: auto;
+  align-self: flex-start;
+  font-size: 0.82rem;
+  font-weight: 700;
+  color: var(--bolt);
+  text-decoration: none;
+}
+.onboarding-tile-cta:hover { text-decoration: underline; }
+/* Not-yet-live on-ramp: rendered as a <span>, muted + non-interactive so
+ * there's no dead link to a flow that isn't built. At go-live, swap for
+ * an <a href="…real signup endpoint…"> and drop the "Soon" badge. */
+.onboarding-tile-cta.is-soon {
+  color: var(--dim);
+  cursor: not-allowed;
+}
+.onboarding-tile-cta.is-soon:hover { text-decoration: none; }
+
+/* "Soon" pill — signals the on-ramp isn't publicly enabled yet, so no
+ * copy falsely claims it's live before the feature flag flips. */
 .badge-soon {
   display: inline-block;
   vertical-align: middle;
-  margin-left: 0.5rem;
-  padding: 0.15rem 0.55rem;
+  padding: 0.1rem 0.45rem;
   border-radius: 999px;
   background: var(--bolt-soft);
   border: 1px solid var(--bolt);
   color: var(--bolt);
-  font-size: 0.62rem;
+  font-size: 0.58rem;
   font-weight: 700;
   letter-spacing: 0.06em;
   text-transform: uppercase;
 }
-/* Non-clickable CTA for not-yet-live lanes — rendered as a <span>, so
- * there's no dead link to a flow that doesn't exist yet. At go-live,
- * swap for an <a href="…real signup endpoint…"> and drop the badge. */
-.cta-soon {
-  cursor: not-allowed;
-  opacity: 0.7;
-  justify-content: center;
-  width: 100%;
-  border-style: dashed;
-}
-.cta-soon:hover { border-color: var(--border-strong); color: var(--white); }
 
 /* ─── FAQ ─── */
 .faq-list {

@@ -535,89 +535,60 @@ app.<span class="c-fn">get</span>(<span class="c-str">"/api/premium/data"</span>
     provider (Strike or OpenNode) custodies every payment.
   </p>
 
-  <!-- ─── Start three ways ─── -->
+  <!-- ─── Start three ways (lightweight on-ramps, subordinate to the
+       production plan cards below) ─── -->
   <h3 class="pricing-subhead">Start three ways.</h3>
   <p class="onboarding-note">
-    <strong>Free Producer Sandbox</strong> and <strong>L402 Fast Lane</strong>
-    are rolling out — the Stripe trial is available today. Free is the
-    sandbox. Fast Lane is the no-card full trial. Stripe is the
-    conventional card trial.
+    Free is the sandbox. Fast Lane is the no-card full trial. Stripe is
+    the card trial. <strong>Free Producer Sandbox</strong> and
+    <strong>L402 Fast Lane</strong> are rolling out — the Stripe trial is
+    available today.
   </p>
 
-  <div class="onboarding-grid">
-    <!-- Card 1 — Free Producer Sandbox (launching soon) -->
-    <div class="pricing-card onboarding-card">
-      <div class="pricing-name">
-        Free Producer Sandbox
-        <span class="badge-soon">Launching soon</span>
+  <div class="onboarding-strip">
+    <!-- On-ramp 1 — Free Producer Sandbox (launching soon) -->
+    <div class="onboarding-tile">
+      <div class="onboarding-tile-head">
+        <span class="onboarding-tile-name">Free Producer Sandbox</span>
+        <span class="badge-soon">Soon</span>
       </div>
-      <div class="pricing-amount">$0<span class="pricing-period">/mo</span></div>
-      <p class="pricing-sub">No credit card</p>
-      <p class="pricing-who">
+      <p class="onboarding-tile-meta">No card · 3 endpoints · 200 challenges/mo</p>
+      <p class="onboarding-tile-desc">
         Create your first L402 producer endpoints and prove the basics.
       </p>
-      <ul class="pricing-features">
-        <li>3 L402 endpoints</li>
-        <li>200 challenges / month</li>
-        <li>Up to 100 sats per challenge</li>
-        <li>1 proxy config</li>
-        <li>1 merchant, environment, and webhook endpoint</li>
-      </ul>
-      <p class="pricing-upgrade-note">
-        Upgrade for analytics, Shopify, registry listing, custom
-        branding, SLA, support, and higher limits.
-      </p>
-      <div class="pricing-actions">
-        <span class="cta cta-ghost cta-soon" aria-disabled="true">Start free</span>
-      </div>
+      <span class="onboarding-tile-cta is-soon" aria-disabled="true">Start free</span>
     </div>
 
-    <!-- Card 2 — L402 Fast Lane (launching soon). NOTE: this is NOT the
-         "Pay with Bitcoin — 10% off" subscription discount below. Fast
-         Lane pays a 100-sat L402 challenge to unlock a no-card trial. -->
-    <div class="pricing-card onboarding-card onboarding-card-featured">
-      <div class="pricing-name">
-        L402 Fast Lane
-        <span class="badge-soon">Launching soon</span>
+    <!-- On-ramp 2 — L402 Fast Lane (launching soon). NOTE: this is NOT the
+         "Pay with Bitcoin — 10% off" subscription discount in the plan
+         cards below. Fast Lane pays a 100-sat L402 challenge to unlock a
+         no-card trial. -->
+    <div class="onboarding-tile">
+      <div class="onboarding-tile-head">
+        <span class="onboarding-tile-name">L402 Fast Lane</span>
+        <span class="badge-soon">Soon</span>
       </div>
-      <div class="pricing-amount">100<span class="pricing-period"> sats</span></div>
-      <p class="pricing-sub">No credit card</p>
-      <p class="pricing-who">
-        Pay a 100-sat L402 challenge to unlock a 30-day Individual trial.
+      <p class="onboarding-tile-meta">No card · 100 sats → 30-day Individual trial</p>
+      <p class="onboarding-tile-desc">
+        Pay a 100-sat L402 challenge to unlock the full trial. Signup runs
+        on L402: 402 → pay → macaroon proof → activated.
       </p>
-      <ul class="pricing-features">
-        <li>Full Individual plan for 30 days</li>
-        <li>No card, no Stripe checkout</li>
-        <li>Signup itself runs on L402:
-          402 → Lightning payment → macaroon proof → account activated</li>
-        <li>Moves to the Free Producer Sandbox after 30 days unless
-          billing is added</li>
-      </ul>
-      <div class="pricing-actions">
-        <span class="cta cta-ghost cta-soon" aria-disabled="true">Activate with Lightning</span>
-      </div>
+      <span class="onboarding-tile-cta is-soon" aria-disabled="true">Activate with Lightning</span>
     </div>
 
-    <!-- Card 3 — Stripe Trial (live today) -->
-    <div class="pricing-card onboarding-card">
-      <div class="pricing-name">Stripe Trial</div>
-      <div class="pricing-amount">30<span class="pricing-period"> days</span></div>
-      <p class="pricing-sub">Credit card required</p>
-      <p class="pricing-who">
-        Start a conventional 30-day Individual trial through Stripe
-        Checkout. No charge until the trial ends.
-      </p>
-      <ul class="pricing-features">
-        <li>Full Individual plan for 30 days</li>
-        <li>Card on file via Stripe Checkout</li>
-        <li>Converts to $99/mo when the trial ends</li>
-        <li>Cancel anytime before the trial ends</li>
-      </ul>
-      <div class="pricing-actions">
-        <a class="cta cta-primary"
-           href="https://api.lightningenable.com/Checkout?plan=individual"
-           target="_blank" rel="noopener noreferrer">Start trial</a>
+    <!-- On-ramp 3 — Stripe Trial (live today) -->
+    <div class="onboarding-tile">
+      <div class="onboarding-tile-head">
+        <span class="onboarding-tile-name">Stripe Trial</span>
       </div>
+      <p class="onboarding-tile-meta">Card · 30-day Individual trial</p>
+      <p class="onboarding-tile-desc">
+        A conventional 30-day trial through Stripe Checkout. No charge
+        until it ends.
+      </p>
+      <a class="onboarding-tile-cta"
+         href="https://api.lightningenable.com/Checkout?plan=individual"
+         target="_blank" rel="noopener noreferrer">Start trial →</a>
     </div>
   </div>
 
