@@ -919,6 +919,29 @@ pre.code {
   margin-bottom: 0.85rem;
 }
 
+/* ─── Download counter (in the "agent ecosystem" proof card) ─── */
+/* A compact stat, not a hero flourish: a bold number over a dim label,
+ * set off from the card copy by a hairline rule. Lives in one of four
+ * proof cards, so it reads as quiet evidence, not a brag. tabular-nums
+ * keeps the digits from reflowing when JS swaps the static fallback for
+ * the live count. */
+.proof-stat {
+  margin: 1rem 0 0;
+  padding-top: 0.9rem;
+  border-top: 1px solid var(--border);
+  color: var(--dim);
+  font-size: 0.85rem;
+  line-height: 1.4;
+}
+.proof-stat-num {
+  display: block;
+  color: var(--white);
+  font-size: 1.3rem;
+  font-weight: 900;
+  font-variant-numeric: tabular-nums;
+  letter-spacing: -0.01em;
+}
+
 /* ─── Pricing — audience-fit paragraph ─── */
 /* Sits between the price line and the feature list, in the same
  * dim color as the section ledes elsewhere so it reads as
