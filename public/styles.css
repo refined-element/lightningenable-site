@@ -919,6 +919,49 @@ pre.code {
   margin-bottom: 0.85rem;
 }
 
+/* ─── Download counter (in the "agent ecosystem" proof card) ─── */
+/* A small KPI: a dim uppercase caption over a big number wearing the
+ * hero-title's bolt→cyan clip-text (.highlight) with a soft bolt glow,
+ * trailed by an "and counting" suffix on the same baseline. Reads as an
+ * intentional site metric, still compact inside one of four proof cards.
+ * tabular-nums keeps digits from reflowing when JS swaps the fallback
+ * for the live count. */
+.proof-stat {
+  margin: 1.15rem 0 0;
+  padding-top: 1rem;
+  border-top: 1px solid var(--border);
+}
+.proof-stat-cap {
+  display: block;
+  font-size: 0.7rem;
+  font-weight: 700;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--dim);
+  margin-bottom: 0.35rem;
+}
+.proof-stat-figure {
+  display: flex;
+  align-items: baseline;
+  gap: 0.45rem;
+  flex-wrap: wrap;
+}
+.proof-stat-num {
+  font-size: 1.85rem;
+  font-weight: 900;
+  line-height: 1;
+  font-variant-numeric: tabular-nums;
+  letter-spacing: -0.02em;
+  /* drop-shadow (not text-shadow) glows the gradient-clipped glyphs —
+     same technique as the hero bolt. */
+  filter: drop-shadow(0 0 14px var(--bolt-glow));
+}
+.proof-stat-suffix {
+  font-size: 0.85rem;
+  font-weight: 500;
+  color: var(--dim);
+}
+
 /* ─── Pricing — audience-fit paragraph ─── */
 /* Sits between the price line and the feature list, in the same
  * dim color as the section ledes elsewhere so it reads as
