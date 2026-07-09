@@ -921,9 +921,9 @@ pre.code {
 
 /* ─── Download counter (in the "agent ecosystem" proof card) ─── */
 /* A small KPI: a dim uppercase caption over a big number wearing the
- * hero-title's bolt→cyan clip-text (via .highlight), so it reads as an
- * intentional site metric rather than plain body copy. Sits in one of
- * four proof cards behind a hairline rule — present, but not a brag.
+ * hero-title's bolt→cyan clip-text (.highlight) with a soft bolt glow,
+ * trailed by an "and counting" suffix on the same baseline. Reads as an
+ * intentional site metric, still compact inside one of four proof cards.
  * tabular-nums keeps digits from reflowing when JS swaps the fallback
  * for the live count. */
 .proof-stat {
@@ -940,13 +940,26 @@ pre.code {
   color: var(--dim);
   margin-bottom: 0.35rem;
 }
+.proof-stat-figure {
+  display: flex;
+  align-items: baseline;
+  gap: 0.45rem;
+  flex-wrap: wrap;
+}
 .proof-stat-num {
-  display: block;
   font-size: 1.85rem;
   font-weight: 900;
   line-height: 1;
   font-variant-numeric: tabular-nums;
   letter-spacing: -0.02em;
+  /* drop-shadow (not text-shadow) glows the gradient-clipped glyphs —
+     same technique as the hero bolt. */
+  filter: drop-shadow(0 0 14px var(--bolt-glow));
+}
+.proof-stat-suffix {
+  font-size: 0.85rem;
+  font-weight: 500;
+  color: var(--dim);
 }
 
 /* ─── Pricing — audience-fit paragraph ─── */
