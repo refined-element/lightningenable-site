@@ -920,26 +920,33 @@ pre.code {
 }
 
 /* ─── Download counter (in the "agent ecosystem" proof card) ─── */
-/* A compact stat, not a hero flourish: a bold number over a dim label,
- * set off from the card copy by a hairline rule. Lives in one of four
- * proof cards, so it reads as quiet evidence, not a brag. tabular-nums
- * keeps the digits from reflowing when JS swaps the static fallback for
- * the live count. */
+/* A small KPI: a dim uppercase caption over a big number wearing the
+ * hero-title's bolt→cyan clip-text (via .highlight), so it reads as an
+ * intentional site metric rather than plain body copy. Sits in one of
+ * four proof cards behind a hairline rule — present, but not a brag.
+ * tabular-nums keeps digits from reflowing when JS swaps the fallback
+ * for the live count. */
 .proof-stat {
-  margin: 1rem 0 0;
-  padding-top: 0.9rem;
+  margin: 1.15rem 0 0;
+  padding-top: 1rem;
   border-top: 1px solid var(--border);
+}
+.proof-stat-cap {
+  display: block;
+  font-size: 0.7rem;
+  font-weight: 700;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
   color: var(--dim);
-  font-size: 0.85rem;
-  line-height: 1.4;
+  margin-bottom: 0.35rem;
 }
 .proof-stat-num {
   display: block;
-  color: var(--white);
-  font-size: 1.3rem;
+  font-size: 1.85rem;
   font-weight: 900;
+  line-height: 1;
   font-variant-numeric: tabular-nums;
-  letter-spacing: -0.01em;
+  letter-spacing: -0.02em;
 }
 
 /* ─── Pricing — audience-fit paragraph ─── */
