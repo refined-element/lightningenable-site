@@ -37,13 +37,24 @@
 <link rel="icon" type="image/png" sizes="512x512" href="images/logo-icon.png" />
 <link rel="apple-touch-icon" sizes="512x512" href="images/logo-icon.png" />
 
-<!-- Google Analytics 4 -->
-<script async src="https://www.googletagmanager.com/gtag/js?id=G-3RSBQB1H59"></script>
+<!-- Google Analytics 4 — production hostnames only. The gtag() shim is always
+     defined so app code never ReferenceErrors, but the library is loaded and
+     configured only on the live domains, keeping Vercel preview deploys
+     (*.vercel.app) and localhost out of the shared GA property (G-3RSBQB1H59). -->
 <script>
     window.dataLayer = window.dataLayer || [];
-    function gtag(){dataLayer.push(arguments);}
-    gtag('js', new Date());
-    gtag('config', 'G-3RSBQB1H59');
+    function gtag(){ dataLayer.push(arguments); }
+    window.gtag = gtag;
+    (function () {
+        var prodHosts = ['lightningenable.com', 'www.lightningenable.com'];
+        if (prodHosts.indexOf(location.hostname) === -1) return;
+        var s = document.createElement('script');
+        s.async = true;
+        s.src = 'https://www.googletagmanager.com/gtag/js?id=G-3RSBQB1H59';
+        document.head.appendChild(s);
+        gtag('js', new Date());
+        gtag('config', 'G-3RSBQB1H59');
+    })();
 </script>
 
 <!-- JSON-LD structured data: helps Google's Knowledge Graph and
