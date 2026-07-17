@@ -8,7 +8,7 @@
     "dev": "vercel dev",
     "deploy": "vercel --prod",
     "deploy:preview": "vercel",
-    "test": "node --test tests/"
+    "test": "node --test"
   },
   "dependencies": {
     "l402-server": "^0.1.0",
