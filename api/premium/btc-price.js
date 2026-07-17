@@ -8,6 +8,21 @@
  *
  * Upstream data: CoinGecko's public price API (free, no auth, lenient rate
  * limit).
+ *
+ * Follows the same delivery contract as `weather.js` — read the header
+ * comment there for the full reasoning. In short: past the L402 gate the
+ * buyer's sat is already spent, so the status code is the merchant's
+ * answer to "did I get what I paid for?" and the only answer an agent
+ * reads. Upstream failure → 502 + no-store, never a 200 carrying
+ * `price: null`.
+ *
+ * Prices make the stakes concrete. A silent `price: null` is bad; a
+ * plausible-but-wrong number would be worse, because a buyer can detect
+ * the first and cannot detect the second. So there is NO fallback rate
+ * here, matching the unpaid `/api/btc-price.js` which races three
+ * sources and still returns 503 rather than invent one. An endpoint that
+ * charges for a number has a stronger obligation to be right about it,
+ * not a weaker one.
  */
 
 import { L402Server } from "l402-server";
@@ -111,13 +126,55 @@ export default async function handler(req, res) {
     });
   }
 
-  const price = await fetchBtcPrice(currency);
+  // Token good — the sat is SPENT as of this line. `fetchBtcPrice`
+  // throws rather than returning `{ price: null }` so that "no price"
+  // cannot silently fall through into the 200 below.
+  let price;
+  try {
+    price = await fetchBtcPrice(currency);
+  } catch (err) {
+    return sendUndeliverable(res, err, verification);
+  }
+
+  // No shared caching of paid responses — see `weather.js`. Already
+  // covered by `vercel.json` here; repeated so a copied file keeps the
+  // guarantee.
+  res.setHeader("Cache-Control", "no-store");
   return res.status(200).json({
     currency,
     ...price,
     timestamp: new Date().toISOString(),
     l402: {
       valid: true,
+      paid: true,
+      delivered: true,
+      resource: verification.resource,
+      merchantId: verification.merchantId,
+      amountSats: verification.amountSats,
+      paymentHash: verification.paymentHash,
+    },
+  });
+}
+
+/**
+ * The paid-but-undelivered response. Called only after payment has been
+ * verified, so it always reports `paid: true`. See `weather.js` for why
+ * `no-store` is set here explicitly even though `vercel.json` already
+ * covers `/api/premium/*`.
+ */
+function sendUndeliverable(res, err, verification) {
+  const status = err?.status ?? 502;
+  res.setHeader("Cache-Control", "no-store");
+  return res.status(status).json({
+    error: status === 404 ? "Not Found" : "Bad Gateway",
+    code: err?.code ?? "upstream_failed",
+    message: err?.message ?? String(err),
+    // Echo the settled payment so the buyer can tie this failure to the
+    // sat it cost them.
+    l402: {
+      valid: true,
+      paid: true,
+      delivered: false,
       resource: verification.resource,
       merchantId: verification.merchantId,
       amountSats: verification.amountSats,
@@ -137,42 +194,101 @@ function parseL402(authHeader) {
   };
 }
 
-async function fetchBtcPrice(currency) {
+export { fetchBtcPrice };
+
+/**
+ * An upstream problem, carrying the HTTP status the handler should
+ * surface. Defined locally rather than imported from a shared `_lib` so
+ * this file stays self-contained when copied out.
+ */
+class UpstreamError extends Error {
+  constructor(message, { status = 502, code = "upstream_failed" } = {}) {
+    super(message);
+    this.name = "UpstreamError";
+    this.status = status;
+    this.code = code;
+  }
+}
+
+// One upstream call, 5s of the function's 10s `vercel.json` budget —
+// same reasoning as `weather.js`: own the timeout so the failure is our
+// JSON 502 rather than the platform's HTML 504.
+const UPSTREAM_TIMEOUT_MS = 5000;
+
+async function fetchWithTimeout(url, timeoutMs = UPSTREAM_TIMEOUT_MS) {
+  const ctrl = new AbortController();
+  const timer = setTimeout(() => ctrl.abort(), timeoutMs);
   try {
-    const r = await fetch(
-      `https://api.coingecko.com/api/v3/simple/price?ids=bitcoin&vs_currencies=${currency.toLowerCase()}&include_24hr_change=true&include_last_updated_at=true`,
+    return await fetch(url, {
+      signal: ctrl.signal,
+      headers: {
+        "User-Agent": "LightningEnable-Demo/1.0",
+        Accept: "application/json",
+      },
+    });
+  } finally {
+    clearTimeout(timer);
+  }
+}
+
+/**
+ * Fetch the BTC price from CoinGecko.
+ *
+ * THROWS on any failure — never returns `{ price: null }`, and never
+ * substitutes a fallback rate. The caller has already taken the buyer's
+ * sat; the only honest outcomes are a real price or an admitted failure.
+ */
+async function fetchBtcPrice(currency) {
+  const k = currency.toLowerCase();
+
+  let data;
+  try {
+    const r = await fetchWithTimeout(
+      `https://api.coingecko.com/api/v3/simple/price?ids=bitcoin&vs_currencies=${k}&include_24hr_change=true&include_last_updated_at=true`,
     );
     if (!r.ok) {
-      return {
-        error: "Upstream provider returned " + r.status,
-        price: null,
-        change_24h_percent: null,
-      };
+      // 429 lands here a lot — CoinGecko's free tier rate-limits. That
+      // is precisely a "come back later" the buyer needs to hear, not
+      // something to paper over with a null.
+      throw new UpstreamError(`Price provider returned HTTP ${r.status}.`);
     }
-    const data = await r.json();
-    const bucket = data?.bitcoin;
-    if (!bucket) {
-      return {
-        error: "Bitcoin price not in response",
-        price: null,
-        change_24h_percent: null,
-      };
-    }
-    const k = currency.toLowerCase();
-    return {
-      price: bucket[k] ?? null,
-      change_24h_percent: bucket[`${k}_24h_change`] ?? null,
-      source: "coingecko.com",
-      source_updated_at: bucket.last_updated_at
-        ? new Date(bucket.last_updated_at * 1000).toISOString()
-        : null,
-    };
+    data = await r.json();
   } catch (err) {
-    return {
-      error: "Upstream price provider failed",
-      message: err?.message ?? String(err),
-      price: null,
-      change_24h_percent: null,
-    };
+    if (err instanceof UpstreamError) throw err;
+    throw new UpstreamError(
+      `Price provider unreachable: ${err?.message ?? String(err)}`,
+    );
   }
+
+  const bucket = data?.bitcoin;
+  if (!bucket) {
+    throw new UpstreamError("Price provider response missing the bitcoin key.", {
+      code: "upstream_malformed",
+    });
+  }
+
+  // Type-check the number the buyer paid for, mirroring the guard in
+  // `/api/btc-price.js` (`typeof rate !== "number" || rate <= 0`). A
+  // zero, a string, or a missing currency key is a broken feed — not a
+  // price — and shipping it as one would make us the source of the bad
+  // data rather than a victim of it.
+  const price = bucket[k];
+  if (typeof price !== "number" || !Number.isFinite(price) || price <= 0) {
+    throw new UpstreamError(
+      `Price provider returned no usable ${currency} rate.`,
+      { code: "upstream_malformed" },
+    );
+  }
+
+  const change = bucket[`${k}_24h_change`];
+  return {
+    price,
+    // The 24h change is genuinely optional metadata, not the thing being
+    // sold — null here is honest reporting, not a swallowed failure.
+    change_24h_percent: typeof change === "number" ? change : null,
+    source: "coingecko.com",
+    source_updated_at: bucket.last_updated_at
+      ? new Date(bucket.last_updated_at * 1000).toISOString()
+      : null,
+  };
 }
