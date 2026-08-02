@@ -1,0 +1,254 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>For AI agents — pay any API over Lightning | Lightning Enable</title>
+<meta name="description" content="How AI agents pay APIs with L402: HTTP 402 + a Lightning payment + a macaroon credential. Install the free, open-source MCP server and your agent can pay per request — no account, no API key, no card." />
+
+<link rel="canonical" href="https://www.lightningenable.com/agents" />
+
+<meta property="og:title" content="For AI agents — pay any API over Lightning" />
+<meta property="og:description" content="HTTP 402 + Lightning + macaroons: payment becomes authorization. Install the free MCP server and your agent pays APIs per request — no account, no card." />
+<meta property="og:type" content="website" />
+<meta property="og:url" content="https://www.lightningenable.com/agents" />
+<meta property="og:site_name" content="Lightning Enable" />
+<meta property="og:image" content="https://www.lightningenable.com/images/og-card.png?v=2" />
+<meta property="og:image:width" content="1200" />
+<meta property="og:image:height" content="630" />
+<meta property="og:image:alt" content="Lightning Enable — Monetize your API for AI agents. Software paying software, per request, over Lightning." />
+<meta name="twitter:card" content="summary_large_image" />
+<meta name="twitter:title" content="For AI agents — pay any API over Lightning" />
+<meta name="twitter:description" content="HTTP 402 + Lightning + macaroons: payment becomes authorization. Free, open-source MCP server." />
+<meta name="twitter:image" content="https://www.lightningenable.com/images/og-card.png?v=2" />
+
+<link rel="icon" type="image/svg+xml" href="/favicon.svg?v=2" />
+<link rel="icon" type="image/png" sizes="512x512" href="/images/logo-icon.png" />
+<link rel="apple-touch-icon" sizes="512x512" href="/images/logo-icon.png" />
+
+<!-- Google Analytics 4 — production hostnames only (same gate as the
+     homepage: the gtag() shim is always defined, the library loads only
+     on the live domains). -->
+<script>
+    window.dataLayer = window.dataLayer || [];
+    function gtag(){ dataLayer.push(arguments); }
+    window.gtag = gtag;
+    (function () {
+        var prodHosts = ['lightningenable.com', 'www.lightningenable.com'];
+        if (prodHosts.indexOf(location.hostname) === -1) return;
+        var s = document.createElement('script');
+        s.async = true;
+        s.src = 'https://www.googletagmanager.com/gtag/js?id=G-3RSBQB1H59';
+        document.head.appendChild(s);
+        gtag('js', new Date());
+        gtag('config', 'G-3RSBQB1H59');
+    })();
+</script>
+
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;700;900&family=JetBrains+Mono:wght@400;700&display=swap" rel="stylesheet" />
+<link rel="stylesheet" href="/styles.css" />
+</head>
+<body>
+
+<!-- ─── Site header (shared with the homepage) ─── -->
+<header class="site-header">
+  <a class="site-brand" href="/" aria-label="Lightning Enable home">
+    <img class="site-logo" src="/images/logo.svg" alt="Lightning Enable" width="216" height="58" />
+  </a>
+  <nav class="site-nav">
+    <a href="https://docs.lightningenable.com" target="_blank" rel="noopener noreferrer">Docs</a>
+    <a href="https://discord.gg/rX7NxHY8vx" target="_blank" rel="noopener noreferrer">Community</a>
+    <a href="/agents" aria-current="page">Agents</a>
+    <a href="/pricing">Pricing</a>
+    <a class="site-nav-cta" href="/pricing">Start free trial</a>
+  </nav>
+</header>
+
+<!-- ─── Page head ─── -->
+<section class="section page-head">
+  <h1 class="section-title">Your agent can pay for<br /><span class="highlight">what it needs</span>.</h1>
+  <p class="section-lede">
+    APIs, data, tools — paid per request, in seconds, with no account,
+    no API key, and no card on file. The free, open-source Lightning
+    Enable MCP server gives any MCP-capable agent a Lightning wallet
+    and the L402 protocol. Here's how it works.
+  </p>
+</section>
+
+<!-- ─── How L402 works, in plain words ─── -->
+<section class="section" id="how-it-works">
+  <h2 class="section-title">How an agent buys an API call.</h2>
+  <p class="section-lede">
+    L402 is a small convention built on three old, boring, reliable
+    pieces: an HTTP status code from 1997, a payment network that
+    settles in about a second, and a credential you can verify without
+    a database lookup.
+  </p>
+
+  <ul class="why-list">
+    <li>
+      <strong>1 · Ask — and get a price, not a login wall.</strong>
+      The agent calls a paid endpoint. Instead of 401 Unauthorized, the
+      server answers <code>HTTP 402 Payment Required</code> with two
+      things attached: a Lightning invoice (the price, often a single
+      sat) and a macaroon — a scoped credential that isn't valid yet.
+    </li>
+    <li>
+      <strong>2 · Pay — about one second, about one sat.</strong>
+      The agent pays the invoice over the Lightning Network from its own
+      wallet. Settlement is final in roughly a second, and the wallet
+      receives the <em>preimage</em> — a cryptographic receipt that only
+      exists once the payment actually settled.
+    </li>
+    <li>
+      <strong>3 · Retry — payment becomes authorization.</strong>
+      The agent repeats the identical request, now presenting macaroon +
+      preimage together. The server checks that the receipt matches the
+      credential and serves the response. No account was created, no
+      card was stored, no human clicked a checkout.
+    </li>
+    <li>
+      <strong>Why this fits agents.</strong>
+      Card rails assume a human: identity, billing address, fraud
+      history, a checkout flow. Agents have none of those. L402 needs
+      only a wallet — which is exactly what the MCP server below
+      provides. Budgets, payment history, and per-payment limits are
+      built in, so your agent spends sats, not surprises.
+    </li>
+  </ul>
+</section>
+
+<!-- ─── MCP quickstart ─── -->
+<section class="section" id="quickstart">
+  <h2 class="section-title">Quickstart: give your agent a wallet.</h2>
+  <p class="section-lede">
+    The MCP server is free and open source (MIT), published on PyPI,
+    NuGet, and Docker Hub — 24,000+ downloads and counting. Three steps
+    from zero to a paid API call.
+  </p>
+
+  <pre class="code"><code><span class="c-comment"># 1 — Install (pick your runtime)</span>
+pip install lightning-enable-mcp        <span class="c-comment"># Python</span>
+uvx lightning-enable-mcp                <span class="c-comment"># Python, no install</span>
+dotnet tool install -g LightningEnable.Mcp   <span class="c-comment"># .NET</span>
+docker pull refinedelement/lightning-enable-mcp:latest   <span class="c-comment"># Docker</span></code></pre>
+
+  <p class="section-lede">
+    <strong>2 — Connect one L402-capable wallet.</strong> L402 needs a
+    wallet that returns the payment preimage: Strike (easiest to start),
+    NWC (CoinOS / CLINK / Alby Hub), or your own LND node. Add the MCP
+    to your agent host — for Claude Desktop, that's one entry in
+    <code>claude_desktop_config.json</code>:
+  </p>
+
+  <pre class="code"><code>{
+  <span class="c-str">"mcpServers"</span>: {
+    <span class="c-str">"lightning-enable"</span>: {
+      <span class="c-str">"command"</span>: <span class="c-str">"uvx"</span>,
+      <span class="c-str">"args"</span>: [<span class="c-str">"lightning-enable-mcp"</span>],
+      <span class="c-str">"env"</span>: { <span class="c-str">"STRIKE_API_KEY"</span>: <span class="c-str">"your-strike-api-key"</span> }
+    }
+  }
+}</code></pre>
+
+  <p class="section-lede">
+    <strong>3 — Prove the whole loop works.</strong> Ask your agent to
+    run <code>test_l402_payment</code>. It pays a public 1-sat L402
+    endpoint end to end — wallet connected, preimage returned, response
+    served. Total cost: about one satoshi. Then try the fun one: ask it
+    to buy a t-shirt from the
+    <a href="https://store.lightningenable.com" target="_blank" rel="noopener noreferrer">Lightning Enable Store</a>.
+  </p>
+
+  <div class="install-row">
+    <span class="install-label">Full guide:</span>
+    <a class="repo-link" href="https://docs.lightningenable.com/products/agentic-commerce/mcp-quickstart" target="_blank" rel="noopener noreferrer">docs.lightningenable.com — MCP quickstart</a>
+  </div>
+  <div class="install-row">
+    <span class="install-label">Source:</span>
+    <a class="repo-link" href="https://github.com/refined-element/lightning-enable-mcp" target="_blank" rel="noopener noreferrer">github.com/refined-element/lightning-enable-mcp</a>
+  </div>
+</section>
+
+<!-- ─── Free vs paid split ─── -->
+<section class="section" id="free-vs-paid">
+  <h2 class="section-title">What's free, what's paid.</h2>
+  <p class="section-lede">
+    Simple split: <strong>spending</strong> money is free,
+    <strong>making</strong> money is the product.
+  </p>
+
+  <div class="split-grid">
+    <div class="split-card">
+      <div class="split-eyebrow">Free forever — the agent side</div>
+      <h3 class="split-heading">Pay and use L402 APIs.</h3>
+      <ul class="split-list">
+        <li>Open-source MCP server (MIT) — no subscription</li>
+        <li>Pay Lightning invoices and L402 challenges</li>
+        <li>Discover paid APIs in the public L402 registry</li>
+        <li>Budgets, spending limits, payment history</li>
+        <li>Works with Strike, NWC, or your own LND node</li>
+      </ul>
+      <a class="cta cta-ghost split-cta"
+         href="https://github.com/refined-element/lightning-enable-mcp"
+         target="_blank" rel="noopener noreferrer">Install the MCP</a>
+    </div>
+
+    <div class="split-card">
+      <div class="split-eyebrow">Needs a plan — the producer side</div>
+      <h3 class="split-heading">Sell access to your own API.</h3>
+      <ul class="split-list">
+        <li>Create L402-protected endpoints agents can buy from</li>
+        <li>Per-endpoint pricing, live revenue dashboard</li>
+        <li>Agent-to-agent commerce tools (ASA over Nostr)</li>
+        <li>Free sandbox: 3 endpoints, 200 challenges/mo, no card</li>
+        <li>Production plans from $99/mo — flat fee, no take rate</li>
+      </ul>
+      <a class="cta cta-ghost split-cta" href="/pricing">See pricing</a>
+    </div>
+  </div>
+</section>
+
+<!-- ─── CTA block ─── -->
+<section class="section section-callout" id="get-started">
+  <h2 class="callout-eyebrow">Both sides of the rail</h2>
+  <p class="callout-text">
+    <strong>Building an agent?</strong> The MCP is free — install it and
+    your agent can pay any L402 API today.
+    <strong>Building an API?</strong> Gate your first endpoint in the
+    free sandbox, no card required.
+  </p>
+  <div class="callout-ctas">
+    <a class="cta cta-primary"
+       href="https://api.lightningenable.com/dashboard/signup?utm_source=site&utm_medium=agents-page&utm_campaign=gtm-aug-2026"
+       target="_blank" rel="noopener noreferrer">⚡ Start free sandbox</a>
+    <a class="cta cta-ghost" href="/pricing">See pricing</a>
+  </div>
+  <p class="callout-cta">
+    <code>pip install lightning-enable-mcp</code> ·
+    <code>dotnet tool install -g LightningEnable.Mcp</code> ·
+    <a href="https://docs.lightningenable.com/products/agentic-commerce/mcp-quickstart"
+       target="_blank" rel="noopener noreferrer">MCP quickstart</a>
+  </p>
+</section>
+
+<!-- ─── Footer ─── -->
+<footer class="footer">
+  <div class="footer-line">
+    Lightning Enable is a product of
+    <a href="https://refinedelement.com" target="_blank" rel="noopener noreferrer">Refined Element, LLC</a>.
+  </div>
+  <div class="footer-links">
+    <a href="https://api.lightningenable.com/dashboard" target="_blank" rel="noopener noreferrer" title="Sign in to manage your endpoints, pricing, and revenue">Customer dashboard</a>
+    <a href="https://docs.lightningenable.com" target="_blank" rel="noopener noreferrer">Docs</a>
+    <a href="https://discord.gg/rX7NxHY8vx" target="_blank" rel="noopener noreferrer">Community</a>
+    <a href="/pricing">Start free trial</a>
+    <a href="https://docs.lightningenable.com/legal/terms-of-service" target="_blank" rel="noopener noreferrer">Terms</a>
+    <a href="https://docs.lightningenable.com/legal/privacy-policy" target="_blank" rel="noopener noreferrer">Privacy</a>
+  </div>
+</footer>
+
+</body>
+</html>

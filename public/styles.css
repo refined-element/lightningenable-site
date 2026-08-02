@@ -1161,6 +1161,113 @@ pre.code {
   text-transform: uppercase;
 }
 
+/* ─── Subpage head (pricing / agents) ─── */
+/* Subpages skip the homepage's 92vh hero: an H1 in the .section-title
+ * voice with a slightly larger clamp, sitting directly under the sticky
+ * header. No top divider — it's the top of the page. */
+.page-head {
+  border-top: none;
+  padding-top: clamp(3rem, 7vw, 5rem);
+  padding-bottom: 2.5rem;
+}
+.page-head .section-title {
+  font-size: clamp(2.25rem, 5.5vw, 3.5rem);
+}
+.page-head .section-lede { margin-bottom: 0; }
+.page-head + .section { border-top: none; padding-top: 2rem; }
+
+/* Mono chips for inline code on subpages — same treatment as
+ * .callout-cta code / .producer-api-note code on the homepage, so
+ * protocol terms read as terminal artifacts everywhere. */
+.section-lede code,
+.why-list code {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 0.85em;
+  background: var(--bg);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  padding: 0.15rem 0.4rem;
+  color: var(--white);
+  white-space: nowrap;
+}
+
+/* ─── Pricing page: annual + Bitcoin price line ─── */
+/* Sits directly under the big monthly amount in the same mono voice as
+ * the on-ramp tile metas, so the alternates read as reference data
+ * rather than competing headline prices. */
+.pricing-alt {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 0.78rem;
+  line-height: 1.6;
+  color: var(--dim);
+  margin: -0.75rem 0 0.75rem;
+}
+.pricing-alt-btc { color: var(--bolt); }
+
+/* ─── Founder note (near the Business plan) ─── */
+/* Backs the "direct founder access" bullet with an actual name. Quiet
+ * aside styling — panel surface, bolt accent edge, no card hover. */
+.founder-note {
+  margin: 2rem auto 0;
+  max-width: 62ch;
+  background: var(--panel);
+  border: 1px solid var(--border);
+  border-left: 3px solid var(--bolt);
+  border-radius: var(--radius-sm);
+  padding: 1.25rem 1.5rem;
+}
+.founder-note-text {
+  color: var(--dim);
+  font-size: 0.95rem;
+  line-height: 1.6;
+  margin: 0 0 0.75rem;
+}
+.founder-note-sig {
+  color: var(--dim-2);
+  font-size: 0.85rem;
+  margin: 0;
+}
+.founder-note-sig strong { color: var(--white); }
+
+/* ─── "As seen in" press bar ─── */
+/* A deliberately modest strip between the hero and the demo: dim
+ * uppercase label + outlet names. Names are plain text until we have
+ * verified public pieces to link (never link a piece that doesn't
+ * mention us). */
+.press-bar {
+  display: flex;
+  align-items: baseline;
+  justify-content: center;
+  gap: 1rem;
+  flex-wrap: wrap;
+  padding: 1.25rem var(--gutter) 2.25rem;
+  max-width: var(--maxw);
+  margin: 0 auto;
+}
+.press-bar-label {
+  font-size: 0.7rem;
+  font-weight: 700;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--dim-2);
+}
+.press-name {
+  font-size: 0.95rem;
+  font-weight: 700;
+  color: var(--dim);
+  letter-spacing: 0.02em;
+}
+.press-dot { color: var(--dim-2); }
+
+/* ─── CTA row inside the callout section (agents page) ─── */
+.callout-ctas {
+  display: flex;
+  gap: 1rem;
+  flex-wrap: wrap;
+  justify-content: center;
+  margin: 2rem 0 0;
+}
+
 /* ─── FAQ ─── */
 .faq-list {
   display: grid;
