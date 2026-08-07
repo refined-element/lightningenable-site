@@ -39,6 +39,27 @@ import { payViaNwc } from "./_lib/nwc.js";
 const SUPPORTED_ENDPOINTS = new Set(["weather", "btc-price"]);
 const MAX_SATS_PER_REQUEST = 25; // sanity ceiling — way above 1-sat demo prices
 
+// NWC pay-invoice resilience. CoinOS's NWC pay path is occasionally flaky:
+// it accepts the request at the relay and then doesn't answer within the
+// timeout, even during otherwise-healthy windows (observed 2026-08-07 —
+// get_balance instant, pay_invoice hung, balance never moved). The daily
+// smoke test rides through these blips because it retries; a visitor's
+// single click did not, so a prospect saw an error on a flow that would
+// have succeeded on a second try. Retry the SAME invoice on transient
+// failures — double-spend-safe because a BOLT11 payment_hash settles at
+// most once (a re-pay returns the same preimage or a benign "already
+// paid", never a second HTLC).
+//
+// Budget: PAY_MAX_ATTEMPTS × PAY_ATTEMPT_TIMEOUT_MS plus the two HTTP
+// hops and backoff MUST stay under the 60s Vercel maxDuration in
+// vercel.json. 2 × 20s + 0.75s + ~2s of HTTP ≈ 43s, comfortably under.
+// Note: retry only helps single-call blips; a sustained multi-minute
+// CoinOS outage still fails (both attempts time out) — that case is on
+// the wallet, not this code.
+const PAY_MAX_ATTEMPTS = 2;
+const PAY_ATTEMPT_TIMEOUT_MS = 20_000;
+const PAY_RETRY_BACKOFF_MS = 750;
+
 // Lightweight abuse defense. Real damage from a drain attack is small
 // (sats go to LE merchant 5 = the operator's own account; cost is the
 // refill, not theft), but we don't want a `while true; do curl ...`
@@ -264,15 +285,29 @@ export default async function handler(req, res) {
   // impossible. The inline version captures every relay message into a
   // diagnostic trace, which is returned in the response body on failure.
   //
-  // 25s timeout < the 60s Vercel maxDuration in vercel.json, so a hung
-  // wallet throws inside the catch and returns clean JSON.
+  // Each attempt uses a timeout < the 60s Vercel maxDuration, and the
+  // whole retry budget stays under it too (see the PAY_* constants), so a
+  // hung wallet throws inside the catch and returns clean JSON rather than
+  // being killed by the platform as an HTML 504. `payInvoiceWithRetry`
+  // retries the SAME invoice on transient failures (relay/timeout/ws) and
+  // gives up immediately on deterministic wallet errors.
   const stepTwoStart = Date.now();
   let preimage;
   let nwcTrace;
+  let payAttempts = 1;
   try {
-    const result = await payViaNwc(nwcUrl, invoice, { timeoutMs: 25_000 });
+    const result = await payInvoiceWithRetry(
+      (inv, opts) => payViaNwc(nwcUrl, inv, opts),
+      invoice,
+      {
+        maxAttempts: PAY_MAX_ATTEMPTS,
+        timeoutMs: PAY_ATTEMPT_TIMEOUT_MS,
+        backoffMs: PAY_RETRY_BACKOFF_MS,
+      },
+    );
     preimage = result.preimage;
     nwcTrace = result.trace;
+    payAttempts = result.attempts;
   } catch (err) {
     const elapsedMs = Date.now() - stepTwoStart;
     return res.status(502).json({
@@ -289,6 +324,9 @@ export default async function handler(req, res) {
     durationMs: Date.now() - stepTwoStart,
     preimagePreview: preimage.slice(0, 16) + "…",
     nwcSteps: nwcTrace?.length ?? 0,
+    // 1 on the happy path; 2 when a transient NWC blip forced a retry.
+    // Surfaced for the smoke test / observability; the frontend ignores it.
+    attempts: payAttempts,
   });
 
   // ── Step 3: retry with L402 token ───────────────────────────────────────
@@ -366,4 +404,76 @@ async function safeText(response) {
   } catch {
     return "";
   }
+}
+
+/**
+ * Classify a payViaNwc failure as transient (worth retrying) vs
+ * deterministic (a retry can't help). Transient failures are ones a
+ * second attempt could clear: an NWC round-trip timeout, a relay
+ * rejection/connection blip, or a malformed "no preimage" reply.
+ * An explicit wallet-side NWC error (insufficient balance, restricted,
+ * quota) is deterministic — retrying just delays the same outcome.
+ * Unknown/empty errors fail closed (treated as non-retryable).
+ *
+ * Exported for unit testing (tests/pay-invoice-retry.test.js).
+ */
+export function isRetryablePayError(err) {
+  const s = String(err?.message ?? err ?? "");
+  if (!s) return false;
+  // An explicit wallet-side NWC error is deterministic — never retry.
+  if (/Wallet returned NWC error/i.test(s)) return false;
+  return (
+    /NWC payment timed out/i.test(s) ||
+    /Relay rejected/i.test(s) ||
+    /WebSocket error/i.test(s) ||
+    /Could not open WebSocket/i.test(s) ||
+    /no error but no preimage/i.test(s)
+  );
+}
+
+/**
+ * Pay a BOLT11 invoice with bounded retries on transient failures.
+ *
+ * Retries the SAME invoice (never a fresh mint): a BOLT11 payment_hash
+ * settles at most once, so re-paying an invoice whose first attempt
+ * secretly settled in-flight returns the same preimage (or a benign
+ * "already paid") rather than moving funds twice — double-spend-safe by
+ * construction.
+ *
+ * @param {(invoice: string, opts: {timeoutMs: number}) => Promise<{preimage: string, trace: object[]}>} payFn
+ *   the injected pay call (payViaNwc in production, a fake in tests)
+ * @param {string} invoice  BOLT11 to pay
+ * @param {{maxAttempts?: number, timeoutMs?: number, backoffMs?: number,
+ *          isRetryable?: (err: unknown) => boolean,
+ *          sleep?: (ms: number) => Promise<void>}} [opts]
+ * @returns {Promise<{preimage: string, trace: object[], attempts: number}>}
+ *   the payFn result plus `attempts` = the 1-based attempt that succeeded.
+ *   Throws the last error (with its diagnostic `.trace` intact) when all
+ *   attempts fail or the failure is deterministic.
+ *
+ * Exported for unit testing (tests/pay-invoice-retry.test.js).
+ */
+export async function payInvoiceWithRetry(payFn, invoice, opts = {}) {
+  const {
+    maxAttempts = PAY_MAX_ATTEMPTS,
+    timeoutMs = PAY_ATTEMPT_TIMEOUT_MS,
+    backoffMs = PAY_RETRY_BACKOFF_MS,
+    isRetryable = isRetryablePayError,
+    sleep = (ms) => new Promise((r) => setTimeout(r, ms)),
+  } = opts;
+
+  let lastErr;
+  for (let attempt = 1; attempt <= maxAttempts; attempt++) {
+    try {
+      const result = await payFn(invoice, { timeoutMs });
+      return { ...result, attempts: attempt };
+    } catch (err) {
+      lastErr = err;
+      if (attempt >= maxAttempts || !isRetryable(err)) throw err;
+      await sleep(backoffMs);
+    }
+  }
+  // Unreachable — the loop returns on success or throws on the final
+  // attempt — but keep readers honest and fail loud if that ever breaks.
+  throw lastErr;
 }
