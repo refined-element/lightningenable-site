@@ -80,6 +80,49 @@
       elBtn.disabled = true;
     });
 
+  // ── Pay-path gate ──────────────────────────────────────────────────
+  // /api/demo-health only proves the wallet is reachable + funded (a
+  // get_balance round-trip). /api/demo-paytest runs a REAL periodic L402
+  // buy (throttled, edge-cached) and reports payOk — catching the case
+  // where the balance looks fine but the wallet can't actually pay
+  // (observed 2026-08-07: get_balance instant, pay_invoice hung). When
+  // payOk is explicitly false, gate the button so a prospect doesn't
+  // click into a failure.
+  //
+  // Fail-OPEN on purpose: a paytest fetch error, or payOk:true, leaves
+  // the button alone. The balance gate above is already fail-closed and
+  // the server-side retry covers transient blips — a hiccup in this
+  // best-effort extra signal must never disable the whole demo.
+  fetch("/api/demo-paytest", { headers: { Accept: "application/json" } })
+    .then((r) => (r.ok ? r.json() : Promise.reject(r.status)))
+    .then((p) => {
+      if (!p || p.payOk !== false) return; // only gate on an explicit failure
+      // Don't clobber a banner the health check already raised — just
+      // make sure the button is gated underneath it.
+      if (!elBanner.classList.contains("hidden")) {
+        elBtn.disabled = true;
+        return;
+      }
+      // Build the banner with DOM methods (static copy, no interpolation)
+      // so there's no innerHTML sink to reason about.
+      elBanner.className = "demo-health-banner banner-error";
+      elBanner.replaceChildren();
+      const strong = document.createElement("strong");
+      strong.textContent = "Demo agent temporarily unavailable.";
+      const span = document.createElement("span");
+      span.textContent =
+        "Our automated check just saw the demo wallet's payment path fail. " +
+        "We're on it — the code samples and walkthrough below describe the same flow.";
+      elBanner.append(strong, " ", span);
+      elBanner.classList.remove("hidden");
+      elBtn.disabled = true;
+    })
+    .catch(() => {
+      // Fail-open — paytest is a best-effort extra signal, not a gate of
+      // record. If it can't be reached, leave the button as the balance
+      // check left it.
+    });
+
   // ── BTC rate (no hardcoded fallback) ────────────────────────────────
   // Fire-and-forget at page load. /api/btc-price races CoinGecko +
   // Coinbase + Kraken (mirrors LE's BitcoinPriceService); on total
