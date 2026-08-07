@@ -52,12 +52,16 @@ const MAX_SATS_PER_REQUEST = 25; // sanity ceiling — way above 1-sat demo pric
 //
 // Budget: PAY_MAX_ATTEMPTS × PAY_ATTEMPT_TIMEOUT_MS plus the two HTTP
 // hops and backoff MUST stay under the 60s Vercel maxDuration in
-// vercel.json. 2 × 20s + 0.75s + ~2s of HTTP ≈ 43s, comfortably under.
+// vercel.json. The challenge + verify hops each call /api/premium/*,
+// which has its own 10s maxDuration, so budget them at ~10s apiece:
+// 10 + (2 × 15s + 0.75s) + 10 ≈ 51s worst case, safely under 60. (An
+// earlier 2 × 20s could reach ~61s when both hops ran slow → an HTML
+// 504 instead of clean JSON.)
 // Note: retry only helps single-call blips; a sustained multi-minute
-// CoinOS outage still fails (both attempts time out) — that case is on
-// the wallet, not this code.
+// wallet/relay outage still fails (both attempts time out) — that case
+// is on the wallet, not this code.
 const PAY_MAX_ATTEMPTS = 2;
-const PAY_ATTEMPT_TIMEOUT_MS = 20_000;
+const PAY_ATTEMPT_TIMEOUT_MS = 15_000;
 const PAY_RETRY_BACKOFF_MS = 750;
 
 // Lightweight abuse defense. Real damage from a drain attack is small
