@@ -1229,36 +1229,6 @@ pre.code {
 }
 .founder-note-sig strong { color: var(--white); }
 
-/* ─── "As seen in" press bar ─── */
-/* A deliberately modest strip between the hero and the demo: dim
- * uppercase label + outlet names. Names are plain text until we have
- * verified public pieces to link (never link a piece that doesn't
- * mention us). */
-.press-bar {
-  display: flex;
-  align-items: baseline;
-  justify-content: center;
-  gap: 1rem;
-  flex-wrap: wrap;
-  padding: 1.25rem var(--gutter) 2.25rem;
-  max-width: var(--maxw);
-  margin: 0 auto;
-}
-.press-bar-label {
-  font-size: 0.7rem;
-  font-weight: 700;
-  letter-spacing: 0.14em;
-  text-transform: uppercase;
-  color: var(--dim-2);
-}
-.press-name {
-  font-size: 0.95rem;
-  font-weight: 700;
-  color: var(--dim);
-  letter-spacing: 0.02em;
-}
-.press-dot { color: var(--dim-2); }
-
 /* ─── CTA row inside the callout section (agents page) ─── */
 .callout-ctas {
   display: flex;
