@@ -126,6 +126,8 @@ Both workflows open / comment on a GitHub Issue on failure, with full `gh issue 
 - Great Ghee — `https://greatghee.com/` — Shopify
 - Salt of the Earth — `https://drinksote.com/` — Shopify (SOTE = drinksote = Salt of the Earth, same merchant under different names)
 
+**Kentico is sunset (2026-08).** The Lightning Enable Kentico integration and its Kentico Commerce tier ($249/mo) are discontinued. Shopify is the only supported ecommerce integration named on this marketing surface. Do NOT re-add "works with Kentico" / "Shopify and Kentico" claims to `index.html`, `llms.txt`, `llms-full.txt`, or the JSON-LD. The Lightning Enable Store (`store.lightningenable.com`) stays listed as a live storefront — it is our own store, not a customer-facing Kentico integration claim.
+
 **Cookie-aware root redirect on api.lightningenable.com** (LE API side, not this repo): authenticated DashboardCookie → `/dashboard`, anonymous → `https://www.lightningenable.com/`. The marketing-site pricing CTAs hit `api.lightningenable.com/Checkout` which is unaffected.
 
 ## Smoke testing locally
@@ -141,5 +143,5 @@ You'll need `LIGHTNING_ENABLE_API_KEY` and `DEMO_AGENT_NWC_URL` in your local `.
 
 ## Related repos
 
-- **Lightning Enable monorepo** (`F:\lightning-enable`, GitHub `refined-element/lightning-enable`) — the LE API + Core/Data/Kentico packages + docs-site. Marketing site here calls `https://api.lightningenable.com/` for L402 challenges + verifications.
+- **Lightning Enable monorepo** (`F:\lightning-enable`, GitHub `refined-element/lightning-enable`) — the LE API + Core/Data packages + docs-site. Marketing site here calls `https://api.lightningenable.com/` for L402 challenges + verifications.
 - **Refined Element site** (`F:\RefinedElement\re-xbk`, GitHub `refined-element/refined-element-site`) — the consultancy marketing site. Hosts `refinedelement.com`. `/products/lightning-enable` is a pared portfolio entry that hands off here via canonical override.
