@@ -45,6 +45,31 @@ Docs: `https://docs.lightningenable.com/products/agentic-commerce/l402-producer-
 
 The same two capabilities are exposed as MCP tools (`create_l402_challenge`, `verify_l402_payment`), which means an agent can act as a **seller** — minting challenges for its own services — not just a buyer.
 
+## Get a producer account autonomously (for agents)
+
+The producer side needs a merchant API key. Three on-ramps, two of which need no card:
+
+**1. L402 Fast Lane (recommended for agents).** Pay one ~100-sat L402 challenge and receive a merchant API key with a full 30-day Agentic Commerce — Individual trial. The signup runs on the same protocol you'll use to sell:
+
+```
+POST https://api.lightningenable.com/api/signup/l402
+Content-Type: application/json
+
+{"email": "you@example.com"}
+```
+
+Response: `402 Payment Required` with `WWW-Authenticate: L402 macaroon="...", invoice="..."`. Pay the BOLT11 invoice over Lightning (the preimage is your proof), then repeat the POST with the header `Authorization: L402 {macaroon}:{preimage}` and the same body. The response contains your new merchant API key.
+
+- Running the MCP server? The `create_lightning_enable_account` tool performs the whole flow with the connected wallet and saves the key to `~/.lightning-enable/config.json`, unlocking the producer and ASA tools.
+- The activation fee follows the MCP server's normal budget and confirmation rules — an above-threshold fee requires the human operator's confirmation code, so check your budget or ask your operator first.
+- After the trial: add billing to keep Individual features, or do nothing and the account auto-downgrades to the **Free Producer Sandbox**. You keep the account and endpoints either way — no card trap.
+
+**2. Free Producer Sandbox.** Free, no card, no payment. Email + magic link at `https://api.lightningenable.com/dashboard/signup`. Limits: 3 endpoints, capped monthly challenge volume, 100 sats max per challenge. Good for proving the flow before paying anything.
+
+**3. Card checkout.** Conventional Stripe trial: `https://api.lightningenable.com/Checkout?plan=individual` (Individual) or `https://api.lightningenable.com/Checkout?plan=l402microtransactions` (Business).
+
+Guide: `https://docs.lightningenable.com/getting-started/activate-with-lightning`.
+
 ## Discovery: how agents find paid APIs
 
 - Every gated API gets a machine-readable manifest at `/.well-known/l402-manifest.json` describing its endpoints and prices in sats.
@@ -54,19 +79,11 @@ The same two capabilities are exposed as MCP tools (`create_l402_challenge`, `ve
 
 ## MCP server (open source, MIT)
 
-`https://github.com/refined-element/lightning-enable-mcp` — free to install: NuGet `LightningEnable.Mcp` (`dotnet tool install -g LightningEnable.Mcp`), PyPI `lightning-enable-mcp` (`pip install lightning-enable-mcp`), Docker Hub `refinedelement/lightning-enable-mcp`. 23 tools total.
+`https://github.com/refined-element/lightning-enable-mcp` — free to install: NuGet `LightningEnable.Mcp` (`dotnet tool install -g LightningEnable.Mcp`), PyPI `lightning-enable-mcp` (`pip install lightning-enable-mcp`), Docker Hub `refinedelement/lightning-enable-mcp`. The authoritative tool list lives in the MCP Complete Guide: `https://docs.lightningenable.com/products/agentic-commerce/mcp-complete-guide`.
 
-**15 tools work out of the box (no Lightning Enable account needed):**
+**Out of the box (no Lightning Enable account needed)** — payments and wallet (`pay_invoice`, `check_wallet_balance`, `create_invoice`, `get_payment_history`, `send_onchain`, ...), L402 consumption (`access_l402_resource`, `pay_l402_challenge`, `discover_api`), budget controls (`get_budget_status`, `configure_budget`), receipts (`get_receipts`), Strike extras (`get_btc_price`, `exchange_currency`), and self-serve signup (`create_lightning_enable_account` — pays the ~100-sat Fast Lane challenge and provisions a merchant API key, see the producer-account section above).
 
-- Payments and wallet: `pay_invoice`, `check_wallet_balance`, `get_payment_history`, `create_invoice`, `check_invoice_status`, `send_onchain`, `confirm_payment`
-- L402 consumption: `access_l402_resource`, `pay_l402_challenge`, `discover_api`
-- Budget controls: `get_budget_status`, `configure_budget`
-- Strike-specific: `get_btc_price`, `get_all_balances`, `exchange_currency`
-
-**8 tools unlock with a Lightning Enable API key:**
-
-- 2 producer tools: `create_l402_challenge`, `verify_l402_payment` — agents as sellers.
-- 6 Agent Service Agreement tools: `discover_agent_services`, `request_agent_service`, `settle_agent_service`, `publish_agent_capability`, `publish_agent_attestation`, `get_agent_reputation`.
+**Unlocked by a Lightning Enable API key** — producer tools (`create_l402_challenge`, `verify_l402_payment` — agents as sellers) and the Agent Service Agreement tools (`discover_agent_services`, `request_agent_service`, `settle_agent_service`, `publish_agent_capability`, `publish_agent_attestation`, `get_agent_reputation`).
 
 Wallet support (priority order): LND > NWC > Strike > OpenNode. Configuration via environment variables or `~/.lightning-enable/config.json` (env wins).
 
@@ -104,7 +121,7 @@ There is no automated offer/counter/accept negotiation loop — the relay relays
 
 Lightning Enable charges a flat monthly subscription. It does NOT take a percentage of payments. One million 1-sat requests earn the API provider 1,000,000 sats — Lightning Enable does not touch any of them. Your chosen settlement provider (Strike or OpenNode) custodies every payment.
 
-Signup: `https://api.lightningenable.com/Checkout?plan=individual` (Individual) or `https://api.lightningenable.com/Checkout?plan=l402microtransactions` (Business).
+Signup: three on-ramps — the **L402 Fast Lane** (~100 sats, no card: `POST https://api.lightningenable.com/api/signup/l402`), the **Free Producer Sandbox** (free, no card: `https://api.lightningenable.com/dashboard/signup`), or card checkout at `https://api.lightningenable.com/Checkout?plan=individual` (Individual) / `https://api.lightningenable.com/Checkout?plan=l402microtransactions` (Business). See "Get a producer account autonomously" above.
 
 ## Ecommerce
 
@@ -132,7 +149,7 @@ The marketing site at `https://www.lightningenable.com/` hosts a live, button-dr
 - Producer API deep reference: `https://api.lightningenable.com/llms-full.txt`
 - Documentation index: `https://docs.lightningenable.com/llms-full.txt`
 - Documentation: `https://docs.lightningenable.com/`
-- Dashboard / signup: `https://api.lightningenable.com/Checkout?plan=individual`
+- Sign up (three on-ramps): L402 Fast Lane `POST https://api.lightningenable.com/api/signup/l402` (~100 sats, no card) · Free Producer Sandbox `https://api.lightningenable.com/dashboard/signup` · card checkout `https://api.lightningenable.com/Checkout?plan=individual`
 - Community: `https://discord.gg/rX7NxHY8vx`
 - Parent company: Refined Element, LLC, `https://refinedelement.com/`
 - Source for this marketing site: `https://github.com/refined-element/lightningenable-site` (MIT)
