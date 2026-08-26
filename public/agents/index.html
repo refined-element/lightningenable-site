@@ -7,6 +7,8 @@
 <meta name="description" content="How AI agents pay APIs with L402: HTTP 402 + a Lightning payment + a macaroon credential. Install the free, open-source MCP server and your agent can pay per request — no account, no API key, no card." />
 
 <link rel="canonical" href="https://www.lightningenable.com/agents" />
+<link rel="alternate" type="text/plain" href="/llms.txt" title="llms.txt" />
+<link rel="alternate" type="text/plain" href="/llms-full.txt" title="llms-full.txt" />
 
 <meta property="og:title" content="For AI agents — pay any API over Lightning" />
 <meta property="og:description" content="HTTP 402 + Lightning + macaroons: payment becomes authorization. Install the free MCP server and your agent pays APIs per request — no account, no card." />
@@ -25,6 +27,44 @@
 <link rel="icon" type="image/svg+xml" href="/favicon.svg?v=2" />
 <link rel="icon" type="image/png" sizes="512x512" href="/images/logo-icon.png" />
 <link rel="apple-touch-icon" sizes="512x512" href="/images/logo-icon.png" />
+
+<!-- JSON-LD: this is the page written FOR agents — give machines the same
+     story the copy tells humans: a free (MIT) MCP server, and a no-card,
+     pay-with-Lightning path to a producer account. -->
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@graph": [
+    {
+      "@type": "SoftwareApplication",
+      "name": "Lightning Enable MCP Server",
+      "applicationCategory": "DeveloperApplication",
+      "operatingSystem": "Cross-platform (MCP stdio server; .NET tool, Python package, Docker image)",
+      "url": "https://www.lightningenable.com/agents",
+      "downloadUrl": "https://github.com/refined-element/lightning-enable-mcp",
+      "license": "https://opensource.org/license/mit/",
+      "offers": {
+        "@type": "Offer",
+        "price": "0",
+        "priceCurrency": "USD",
+        "description": "Free and open-source (MIT). Wallet, invoice, L402, budget, and API-discovery tools work with no Lightning Enable account; the create_lightning_enable_account tool can provision a producer account in-band (~100 sats over Lightning, no card)."
+      },
+      "publisher": { "@id": "https://www.lightningenable.com/#org" }
+    },
+    {
+      "@type": "WebPage",
+      "url": "https://www.lightningenable.com/agents",
+      "name": "For AI agents — pay any API over Lightning",
+      "description": "How AI agents pay APIs with L402, and how an agent creates a Lightning Enable producer account autonomously via the L402 Fast Lane (~100 sats, no card).",
+      "significantLink": [
+        "https://api.lightningenable.com/api/manifests/registry",
+        "https://docs.lightningenable.com/getting-started/activate-with-lightning",
+        "https://www.lightningenable.com/llms.txt"
+      ]
+    }
+  ]
+}
+</script>
 
 <!-- Google Analytics 4 — production hostnames only (same gate as the
      homepage: the gtag() shim is always defined, the library loads only
