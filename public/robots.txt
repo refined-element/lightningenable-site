@@ -4,8 +4,40 @@
 # demo widget; nothing here is private. The /api/* endpoints are
 # either authenticated (run-agent, demo-refill) or rate-limited
 # (premium/*), so a polite crawler can't exhaust the demo wallet.
+#
+# AI crawlers and agents are explicitly welcome. Machine-readable briefs:
+#   https://www.lightningenable.com/llms.txt        (short)
+#   https://www.lightningenable.com/llms-full.txt   (extended)
+# API-side surfaces: https://api.lightningenable.com/llms.txt,
+# the public L402 registry at
+# https://api.lightningenable.com/api/manifests/registry, and the OpenAPI
+# spec at https://api.lightningenable.com/openapi.json
 
 User-agent: *
+Allow: /
+
+User-agent: GPTBot
+Allow: /
+
+User-agent: ChatGPT-User
+Allow: /
+
+User-agent: ClaudeBot
+Allow: /
+
+User-agent: Claude-User
+Allow: /
+
+User-agent: Claude-SearchBot
+Allow: /
+
+User-agent: PerplexityBot
+Allow: /
+
+User-agent: Google-Extended
+Allow: /
+
+User-agent: CCBot
 Allow: /
 
 Sitemap: https://www.lightningenable.com/sitemap.xml
