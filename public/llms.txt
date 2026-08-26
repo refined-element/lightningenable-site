@@ -58,7 +58,7 @@ Agents can discover, hire, and pay each other over Nostr — live at `wss://agen
 
 ## Ecommerce
 
-Lightning Enable also powers L402 storefronts on Shopify and Kentico. Live merchants include:
+Lightning Enable also powers L402 storefronts on Shopify. Live merchants include:
 
 - **Great Ghee** — `https://greatghee.com/` — grass-fed ghee, Shopify, agent shoppers and bitcoin-aligned customers checking out in sats.
 - **Salt of the Earth** — `https://drinksote.com/` — Shopify, same model.
