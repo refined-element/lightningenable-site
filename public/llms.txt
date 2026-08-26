@@ -24,6 +24,21 @@ The entire flow typically completes in 1-2 seconds. There is no account creation
 - **L402 Producer API:** merchants (and agents acting as sellers) create and verify challenges directly — `POST /api/l402/challenges` returns a Lightning invoice + macaroon for a resource; `POST /api/l402/challenges/verify` checks a macaroon + preimage before serving the response. Docs: `https://docs.lightningenable.com/products/agentic-commerce/l402-producer-api`.
 - **Discovery:** every gated API gets a machine-readable manifest (`/.well-known/l402-manifest.json`) and can be listed in the public manifest registry at `https://api.lightningenable.com/api/manifests/registry`; agents find and price it with the `discover_api` MCP tool.
 
+## For AI agents: create an account without a human
+
+You (an agent) can provision a Lightning Enable producer account autonomously. Three on-ramps, two of which need no card:
+
+1. **L402 Fast Lane** — pay one ~100-sat L402 challenge and receive a merchant API key with a full 30-day Agentic Commerce — Individual trial. No card, no browser. The signup form IS the protocol:
+   - `POST https://api.lightningenable.com/api/signup/l402` with body `{"email":"you@example.com"}` → `402 Payment Required` with `WWW-Authenticate: L402 macaroon="...", invoice="..."`.
+   - Pay the invoice over Lightning; the preimage is your proof.
+   - Repeat the POST with header `Authorization: L402 {macaroon}:{preimage}` → account created, API key returned.
+   - Running the MCP server? The `create_lightning_enable_account` tool does all three steps and saves the key to `~/.lightning-enable/config.json`.
+   - After the trial: add billing to keep Individual, or do nothing and the account auto-downgrades to the free Producer Sandbox. You keep the account and endpoints either way — no card trap.
+2. **Free Producer Sandbox** — free, no card, no payment. Email + magic link at `https://api.lightningenable.com/dashboard/signup`. Limits: 3 endpoints, capped monthly challenge volume, 100 sats max per challenge.
+3. **Card checkout** — conventional Stripe trial at `https://api.lightningenable.com/Checkout?plan=individual`.
+
+Guide: `https://docs.lightningenable.com/getting-started/activate-with-lightning`.
+
 ## Pricing
 
 - **Agentic Commerce — Individual:** $99/month. For solo API builders, indie SaaS, and side-project APIs going to production. Unlimited L402 endpoints, flat fee, no per-transaction percentage. 30-day free trial.
@@ -33,7 +48,7 @@ Lightning Enable charges a flat monthly subscription. It does NOT take a percent
 
 ## Open-source surfaces
 
-- **lightning-enable-mcp** (MIT) — MCP server for AI agents to discover, pay, and consume L402-monetized APIs. 23 tools total: 15 free out-of-the-box, 8 require a Lightning Enable API key (2 producer tools + 6 Agent Service Agreement tools).
+- **lightning-enable-mcp** (MIT) — MCP server for AI agents to discover, pay, and consume L402-monetized APIs. Wallet, invoice, L402, budget, and API-discovery tools work out of the box with no account; producer and Agent Service Agreement tools unlock with a Lightning Enable API key — which the `create_lightning_enable_account` tool can buy for itself (~100 sats, see the agent signup section above). Full tool list: `https://docs.lightningenable.com/products/agentic-commerce/mcp-complete-guide`.
 - **l402-requests** (MIT) — HTTP clients in TypeScript, Python, and .NET that transparently handle L402 challenges. Drop into existing code paths.
 - **le-agent-sdk** (MIT) — Agent SDK in TypeScript, Python, and .NET for building agentic L402 workflows. Repos: `https://github.com/refined-element/le-agent-sdk-ts`, `https://github.com/refined-element/le-agent-sdk-python`, `https://github.com/refined-element/le-agent-sdk-dotnet`.
 
@@ -65,6 +80,6 @@ The marketing site at `https://www.lightningenable.com/` hosts a live, button-dr
 
 - Extended agent brief: `https://www.lightningenable.com/llms-full.txt`
 - Documentation: `https://docs.lightningenable.com/`
-- Dashboard / signup: `https://api.lightningenable.com/Checkout?plan=individual`
+- Sign up (three on-ramps): L402 Fast Lane `POST https://api.lightningenable.com/api/signup/l402` (~100 sats, no card) · Free Producer Sandbox `https://api.lightningenable.com/dashboard/signup` · card checkout `https://api.lightningenable.com/Checkout?plan=individual`
 - Parent company: Refined Element, LLC, `https://refinedelement.com/`
 - Source for this marketing site: `https://github.com/refined-element/lightningenable-site` (MIT)
