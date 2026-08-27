@@ -114,7 +114,7 @@
           "name": "Free Producer Sandbox",
           "price": "0",
           "priceCurrency": "USD",
-          "description": "Free producer tier — 3 L402 endpoints, capped monthly challenge volume, 100 sats max per challenge. No card. AI agents can also activate a 30-day Individual trial without a card by paying a ~100-sat L402 challenge (L402 Fast Lane)."
+          "description": "Free producer tier — 3 L402 endpoints, capped monthly challenge volume, 1,000 sats max per challenge. No card. AI agents can also activate a 30-day Individual trial without a card by paying a ~100-sat L402 challenge (L402 Fast Lane)."
         }
       ]
     }
@@ -311,7 +311,7 @@
     APIs. They pay for tools.
   </p>
   <p class="section-lede">
-    But card rails aren't built for them. Stripe assumes a human
+    But card rails aren't built for them. Card processors assume a human
     identity, a checkout flow, a billing address, a fraud history.
     Agent workflows have none of those — so today, agent traffic
     gets eaten by the API provider or blocked at the gate.
@@ -345,7 +345,7 @@
     </li>
     <li>
       <strong>Settles in seconds. Final.</strong>
-      No chargebacks, no 30-day Stripe hold, no card-network 2.9% cut.
+      No chargebacks, no 30-day processor hold, no card-network 2.9% cut.
       Money's in your provider account on the same call.
     </li>
     <li>
@@ -680,17 +680,6 @@ app.<span class="c-fn">get</span>(<span class="c-str">"/api/premium/data"</span>
     </div>
   </div>
 
-  <!-- Founder note — "direct founder access" is a Business feature, so
-       put a name behind the claim right where it's made. -->
-  <aside class="founder-note">
-    <p class="founder-note-text">
-      "Direct founder access" isn't a support-tier euphemism — it's me.
-      Business customers get my calendar for onboarding and my direct
-      line for questions, from first endpoint to production.
-    </p>
-    <p class="founder-note-sig">— <strong>Mike Rahel</strong>, Founder, Lightning Enable</p>
-  </aside>
-
   <p class="pricing-fineprint">
     Lightning Enable does not hold funds. Your chosen settlement provider
     (Strike or OpenNode) custodies every payment.
@@ -726,7 +715,7 @@ app.<span class="c-fn">get</span>(<span class="c-str">"/api/premium/data"</span>
       <p>
         A no-card way to create your first L402 producer endpoints. It
         includes 3 endpoints, limited monthly challenge volume, and a
-        100-sat max challenge price — free enough to prove L402 works,
+        1,000-sat max challenge price — free enough to prove L402 works,
         paid when it becomes production infrastructure. Sandbox limits may
         change as the product evolves; existing users get notice before
         material changes.

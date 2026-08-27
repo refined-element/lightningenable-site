@@ -1,6 +1,6 @@
 # Lightning Enable — Extended Agent Brief
 
-> Infrastructure for agentic commerce over Lightning. AI agents pay your API per request in Bitcoin, with payment becoming authorization through the L402 protocol — no credit card, no signup, no Stripe account required for the agent. Lightning Enable wraps existing HTTP APIs with a small middleware so agents get a `402 Payment Required` with a Lightning invoice, pay it in under a second, and retry with a cryptographic proof of payment.
+> Infrastructure for agentic commerce over Lightning. AI agents pay your API per request in Bitcoin, with payment becoming authorization through the L402 protocol — no credit card, no signup, no payment-processor account required for the agent. Lightning Enable wraps existing HTTP APIs with a small middleware so agents get a `402 Payment Required` with a Lightning invoice, pay it in under a second, and retry with a cryptographic proof of payment.
 
 This is the long-form companion to `https://www.lightningenable.com/llms.txt`. For the full producer API reference (endpoints, request/response shapes, webhooks), read `https://api.lightningenable.com/llms-full.txt`. For documentation structure, read `https://docs.lightningenable.com/llms-full.txt`. For the live L402 merch store, read `https://store.lightningenable.com/llms-full.txt`.
 
@@ -58,13 +58,16 @@ Content-Type: application/json
 {"email": "you@example.com"}
 ```
 
-Response: `402 Payment Required` with `WWW-Authenticate: L402 macaroon="...", invoice="..."`. Pay the BOLT11 invoice over Lightning (the preimage is your proof), then repeat the POST with the header `Authorization: L402 {macaroon}:{preimage}` and the same body. The response contains your new merchant API key.
+Response: `402 Payment Required` with `WWW-Authenticate: L402 macaroon="...", invoice="..."`. Pay the BOLT11 invoice over Lightning (the preimage is your proof), then repeat the POST with the header `Authorization: L402 {macaroon}:{preimage}` and the same body. Success (200) returns `{ "status": "created", "merchantId", "apiKey", "email", "planTier": "individual", "subscriptionStatus": "trialing", "trialEndsAt", "dashboardUrl" }` — the `apiKey` is returned once (store it securely; recoverable later via dashboard sign-in).
 
+- **Quote first (no side effects):** `GET https://api.lightningenable.com/api/signup/l402` returns availability, current price, trial terms, required fields, and the exact flow — check it before sending an email or spending sats.
+- **Semantics:** the challenge phase never reveals whether an email is registered (enumeration-safe by design). If the email already has an account, the **paid** verify returns `409 merchant_exists` and the ~100-sat fee is not refunded — use the operator's real email, never an invented one, and confirm it is new before paying. **Verify promptly after paying:** the credential expires (~1 hour); a late verify returns `401` and re-POSTing mints a NEW payable invoice — the first payment is not automatically recovered. An unpaid challenge never creates an account and costs nothing.
+- **First success:** connect your payment provider first (Strike or OpenNode API key in the dashboard Settings — challenges settle to YOUR provider account; without one, challenge creation returns 400), then create a 1-sat challenge with the new key (`POST /api/l402/challenges` or the `create_l402_challenge` MCP tool), pay it with your own wallet, and confirm with `verify_l402_payment` — an end-to-end producer proof for about 1 sat, no API build required.
 - Running the MCP server? The `create_lightning_enable_account` tool performs the whole flow with the connected wallet and saves the key to `~/.lightning-enable/config.json`, unlocking the producer and ASA tools.
 - The activation fee follows the MCP server's normal budget and confirmation rules — an above-threshold fee requires the human operator's confirmation code, so check your budget or ask your operator first.
 - After the trial: add billing to keep Individual features, or do nothing and the account auto-downgrades to the **Free Producer Sandbox**. You keep the account and endpoints either way — no card trap.
 
-**2. Free Producer Sandbox.** Free, no card, no payment. Email + magic link at `https://api.lightningenable.com/dashboard/signup`. Limits: 3 endpoints, capped monthly challenge volume, 100 sats max per challenge. Good for proving the flow before paying anything.
+**2. Free Producer Sandbox.** Free, no card, no payment. Email + magic link at `https://api.lightningenable.com/dashboard/signup`. Limits: 3 endpoints, capped monthly challenge volume, 1,000 sats max per challenge. Good for proving the flow before paying anything.
 
 **3. Card checkout.** Conventional Stripe trial: `https://api.lightningenable.com/Checkout?plan=individual` (Individual) or `https://api.lightningenable.com/Checkout?plan=l402microtransactions` (Business).
 
