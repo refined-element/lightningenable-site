@@ -4,14 +4,14 @@
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1.0" />
 <title>Pricing — Lightning Enable</title>
-<meta name="description" content="Flat monthly subscription, never a percentage. Agentic Commerce Individual $99/mo, Business $299/mo. Three ways to start: free sandbox, 100-sat Lightning trial, or a 30-day Stripe trial." />
+<meta name="description" content="Flat monthly subscription, never a percentage. Agentic Commerce is $49/mo. Business is priced per deal — contact us. Three ways to start: free sandbox, 100-sat Lightning trial, or a 30-day Stripe trial." />
 
 <link rel="canonical" href="https://www.lightningenable.com/pricing" />
 <link rel="alternate" type="text/plain" href="/llms.txt" title="llms.txt" />
 <link rel="alternate" type="text/plain" href="/llms-full.txt" title="llms-full.txt" />
 
 <meta property="og:title" content="Pricing — Lightning Enable" />
-<meta property="og:description" content="Flat monthly subscription, never a percentage of your revenue. Individual $99/mo, Business $299/mo. Pay with Bitcoin and save 10%." />
+<meta property="og:description" content="Flat monthly subscription, never a percentage of your revenue. Agentic Commerce is $49/mo. Free Producer Sandbox: 3 endpoints, 200 challenges a month, no card." />
 <meta property="og:type" content="website" />
 <meta property="og:url" content="https://www.lightningenable.com/pricing" />
 <meta property="og:site_name" content="Lightning Enable" />
@@ -21,7 +21,7 @@
 <meta property="og:image:alt" content="Lightning Enable — Monetize your API for AI agents. Software paying software, per request, over Lightning." />
 <meta name="twitter:card" content="summary_large_image" />
 <meta name="twitter:title" content="Pricing — Lightning Enable" />
-<meta name="twitter:description" content="Flat monthly subscription, never a percentage. Individual $99/mo, Business $299/mo." />
+<meta name="twitter:description" content="Flat monthly subscription, never a percentage. Agentic Commerce is $49/mo, and the Free Producer Sandbox is free forever." />
 <meta name="twitter:image" content="https://www.lightningenable.com/images/og-card.png?v=2" />
 
 <link rel="icon" type="image/svg+xml" href="/favicon.svg?v=2" />
@@ -47,9 +47,11 @@
     })();
 </script>
 
-<!-- JSON-LD: the two production plans, mirroring the homepage's
+<!-- JSON-LD: the two publicly priced offers, mirroring the homepage's
      SoftwareApplication offers so search engines see one consistent
-     price story. -->
+     price story. Business is deliberately absent — it is priced per
+     deal, and an Offer with an invented price would be worse than no
+     Offer at all. -->
 <script type="application/ld+json">
 {
   "@context": "https://schema.org",
@@ -61,26 +63,18 @@
   "offers": [
     {
       "@type": "Offer",
-      "name": "Agentic Commerce — Individual",
-      "price": "99",
+      "name": "Agentic Commerce",
+      "price": "49",
       "priceCurrency": "USD",
       "billingDuration": "P1M",
-      "description": "For solo API builders, indie SaaS, and side-project APIs going to production. Unlimited L402 endpoints, flat monthly fee, no per-transaction percentage."
-    },
-    {
-      "@type": "Offer",
-      "name": "Agentic Commerce — Business",
-      "price": "299",
-      "priceCurrency": "USD",
-      "billingDuration": "P1M",
-      "description": "For teams and platforms with multiple APIs. Adds Strike or OpenNode as settlement provider, white-glove onboarding, and direct founder access."
+      "description": "For solo API builders, indie SaaS, and teams putting an API into production. Unlimited L402 endpoints, flat monthly fee, no per-transaction percentage."
     },
     {
       "@type": "Offer",
       "name": "Free Producer Sandbox",
       "price": "0",
       "priceCurrency": "USD",
-      "description": "Free producer tier — 3 L402 endpoints, capped monthly challenge volume, 1,000 sats max per challenge. No card. AI agents can also activate a 30-day Individual trial without a card by paying a ~100-sat L402 challenge (L402 Fast Lane)."
+      "description": "Free forever — 3 L402 endpoints, 200 challenges a month, 1,000 sats max per challenge. No card. AI agents can also activate a 30-day Agentic Commerce trial without a card by paying a ~100-sat L402 challenge (L402 Fast Lane)."
     }
   ]
 }
@@ -122,11 +116,11 @@
 <section class="section" id="trials">
   <h2 class="pricing-subhead">Start three ways.</h2>
   <p class="onboarding-note">
-    <strong>Free Producer Sandbox</strong> is a no-card way to prove L402
-    works. <strong>L402 Fast Lane</strong> unlocks the full Individual
-    trial with a 100-sat Lightning payment instead of a card.
-    <strong>Stripe Trial</strong> is the conventional 30-day card trial.
-    All three are live today — pick the on-ramp that fits.
+    <strong>Free Producer Sandbox</strong> is free forever, no card — the
+    way to prove L402 works. <strong>L402 Fast Lane</strong> unlocks the
+    full Agentic Commerce trial with a 100-sat Lightning payment instead
+    of a card. <strong>Stripe Trial</strong> is the conventional 30-day
+    card trial. All three are live today — pick the on-ramp that fits.
   </p>
 
   <div class="onboarding-strip">
@@ -135,23 +129,25 @@
       <div class="onboarding-tile-head">
         <span class="onboarding-tile-name">Free Producer Sandbox</span>
       </div>
-      <p class="onboarding-tile-meta">No card · 3 endpoints · 200 challenges/mo</p>
+      <p class="onboarding-tile-meta">Free forever · 3 endpoints · 200 challenges/mo</p>
       <p class="onboarding-tile-desc">
-        Create your first L402 producer endpoints and prove the basics.
-        Email magic link — no card, ever.
+        Create your first L402 producer endpoints and prove the basics —
+        up to 1,000 sats per challenge. Email magic link, no card, ever.
+        It does not expire.
       </p>
       <a class="onboarding-tile-cta"
          href="https://api.lightningenable.com/dashboard/signup?utm_source=site&utm_medium=pricing-page&utm_campaign=gtm-aug-2026"
          target="_blank" rel="noopener noreferrer">Start free →</a>
     </div>
 
-    <!-- On-ramp 2 — L402 Fast Lane. NOTE: distinct from the
-         "Pay with Bitcoin — 10% off" subscription discount below. -->
+    <!-- On-ramp 2 — L402 Fast Lane. NOTE: distinct from paying the
+         subscription itself in Bitcoin (the /BitcoinCheckout link
+         below). Fast Lane buys a trial; BitcoinCheckout buys a plan. -->
     <div class="onboarding-tile">
       <div class="onboarding-tile-head">
         <span class="onboarding-tile-name">L402 Fast Lane</span>
       </div>
-      <p class="onboarding-tile-meta">No card · 100 sats → 30-day Individual trial</p>
+      <p class="onboarding-tile-meta">No card · 100 sats → 30-day Agentic Commerce trial</p>
       <p class="onboarding-tile-desc">
         Pay a 100-sat L402 challenge to unlock the full trial. Signup runs
         on L402: 402 → pay → macaroon proof → activated.
@@ -182,25 +178,25 @@
 <section class="section" id="plans">
   <h2 class="pricing-subhead">Production plans.</h2>
   <p class="onboarding-note">
-    Both plans include a 30-day free trial. Monthly billing —
-    cancel anytime. Pay the subscription with Bitcoin and save 10%.
+    One paid plan, one price. It includes a 30-day free trial, bills
+    monthly, and you can cancel anytime.
   </p>
 
   <div class="pricing-grid">
     <div class="pricing-card">
-      <div class="pricing-name">Agentic Commerce — Individual</div>
-      <div class="pricing-amount">$99<span class="pricing-period">/mo</span></div>
+      <div class="pricing-name">Agentic Commerce</div>
+      <div class="pricing-amount">$49<span class="pricing-period">/mo</span></div>
       <p class="pricing-alt">
-        $990/yr annual option ·
-        <span class="pricing-alt-btc">⚡ ≈141,551 sats ≈ $89.10/mo with the 10% Bitcoin discount</span>
+        Billed monthly · cancel anytime ·
+        <span class="pricing-alt-btc">⚡ payable in Bitcoin</span>
       </p>
       <p class="pricing-who">
-        For solo API builders, indie SaaS, and side-project APIs going
-        to production.
+        For solo API builders, indie SaaS, and teams putting an API
+        into production.
       </p>
       <ul class="pricing-features">
         <li><strong>Unlimited L402 endpoints</strong> — gate every route on every API you own</li>
-        <li>Strike as settlement provider</li>
+        <li>Connect Strike or OpenNode — every payment settles into your own provider account</li>
         <li>Per-endpoint pricing — different routes can charge different rates</li>
         <li>Live dashboard + per-request payment feed</li>
         <li>30-day free trial — card required (or go card-free via <a href="https://docs.lightningenable.com/getting-started/activate-with-lightning?utm_source=site&utm_medium=pricing-page&utm_campaign=gtm-aug-2026" target="_blank" rel="noopener noreferrer">L402 Fast Lane</a>)</li>
@@ -212,47 +208,37 @@
         <a class="cta-btc"
            href="https://api.lightningenable.com/BitcoinCheckout?plan=individual&utm_source=site&utm_medium=pricing-page&utm_campaign=gtm-aug-2026"
            target="_blank" rel="noopener noreferrer"
-           title="Pay monthly with Bitcoin and save 10%">
-          ⚡ Pay with Bitcoin — 10% off
+           title="Pay your subscription in Bitcoin instead of with a card">
+          ⚡ Or pay with Bitcoin
         </a>
       </div>
     </div>
 
     <div class="pricing-card pricing-card-business">
       <div class="pricing-name">Agentic Commerce — Business</div>
-      <div class="pricing-amount">$299<span class="pricing-period">/mo</span></div>
-      <p class="pricing-alt">
-        $2,990/yr annual option ·
-        <span class="pricing-alt-btc">⚡ ≈427,513 sats ≈ $269.10/mo with the 10% Bitcoin discount</span>
-      </p>
+      <div class="pricing-amount pricing-amount-contact">Contact us</div>
+      <p class="pricing-alt">Priced per deal</p>
       <p class="pricing-who">
-        For teams and platforms with multiple APIs or anyone who wants
-        hands-on onboarding help.
+        For teams that want onboarding help and a direct line to the
+        people building this.
       </p>
       <ul class="pricing-features">
-        <li>Everything in Individual</li>
-        <li><strong>Strike <em>or</em> OpenNode</strong> as settlement provider — your choice</li>
+        <li>Everything in Agentic Commerce</li>
         <li><strong>White-glove onboarding</strong> — we help you get set up</li>
         <li><strong>Direct founder access</strong> — no ticket queues, talk to the person who built this</li>
-        <li>30-day free trial — card required (or go card-free via <a href="https://docs.lightningenable.com/getting-started/activate-with-lightning?utm_source=site&utm_medium=pricing-page&utm_campaign=gtm-aug-2026" target="_blank" rel="noopener noreferrer">L402 Fast Lane</a>)</li>
+        <li>Scoped and priced around what you're actually shipping</li>
       </ul>
       <div class="pricing-actions">
         <a class="cta cta-primary"
-           href="https://api.lightningenable.com/Checkout?plan=business&utm_source=site&utm_medium=pricing-page&utm_campaign=gtm-aug-2026"
-           target="_blank" rel="noopener noreferrer">Start free trial</a>
-        <a class="cta-btc"
-           href="https://api.lightningenable.com/BitcoinCheckout?plan=business&utm_source=site&utm_medium=pricing-page&utm_campaign=gtm-aug-2026"
-           target="_blank" rel="noopener noreferrer"
-           title="Pay monthly with Bitcoin and save 10%">
-          ⚡ Pay with Bitcoin — 10% off
-        </a>
+           href="mailto:support@lightningenable.com?subject=Agentic%20Commerce%20for%20teams">Contact us</a>
       </div>
     </div>
   </div>
 
   <p class="pricing-fineprint">
-    Lightning Enable is API middleware. OpenNode (or Strike) facilitates
-    custody and settlement. We never touch your funds.
+    Lightning Enable is API middleware and does not hold funds. Your
+    payment provider (Strike or OpenNode) facilitates custody and
+    settlement.
   </p>
 </section>
 
@@ -275,19 +261,20 @@
     <details class="faq-item">
       <summary>How does custody work?</summary>
       <p>
-        Lightning Enable is API middleware. OpenNode (or Strike)
-        facilitates custody and settlement. We never touch your funds —
-        payments from your customers settle directly into your own
-        Strike or OpenNode account.
+        Lightning Enable is API middleware and does not hold funds. Your
+        payment provider (Strike or OpenNode) facilitates custody and
+        settlement — payments from your customers settle directly into
+        your own provider account.
       </p>
     </details>
 
     <details class="faq-item">
       <summary>Can I cancel?</summary>
       <p>
-        Yes. Both plans are monthly subscriptions — cancel anytime from
-        your billing page and you won't be charged again. The 30-day
-        trial doesn't charge you at all until it ends.
+        Yes. Agentic Commerce is a monthly subscription — cancel anytime
+        from your billing page and you won't be charged again. The
+        30-day trial doesn't charge you at all until it ends, and the
+        Free Producer Sandbox never charges you at all.
       </p>
     </details>
 

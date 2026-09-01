@@ -682,7 +682,7 @@ pre.code {
   padding: 2rem;
   transition: border-color 0.2s, transform 0.2s;
   /* Flex column so .pricing-actions can pin to the bottom of each
-     card via `margin-top: auto`. Without this, the Individual /
+     card via `margin-top: auto`. Without this, the Agentic Commerce /
      Business cards' CTA rows sat at different vertical positions
      because their feature lists have different text-wrap heights —
      the CTAs aligning is what makes the side-by-side comparison
@@ -708,6 +708,13 @@ pre.code {
   letter-spacing: -0.02em;
   margin-bottom: 1.25rem;
 }
+/* The Business card carries a "Contact us" line where the other card
+   carries a number. At the full price-tag size that phrase wraps on
+   narrow cards and shouts louder than the price it sits beside, so it
+   gets its own smaller step while keeping the same slot. */
+.pricing-amount-contact {
+  font-size: clamp(1.6rem, 3vw, 2.1rem);
+}
 .pricing-period {
   font-size: 1rem;
   color: var(--dim);
@@ -731,7 +738,7 @@ pre.code {
 }
 .pricing-actions {
   /* `margin-top: auto` pushes this block to the bottom of the
-     flex-column card so the primary CTA aligns across Individual /
+     flex-column card so the primary CTA aligns across Agentic Commerce /
      Business regardless of how many lines each feature list wraps
      to. The 1.5rem above-min keeps a comfortable gap even when
      feature lists happen to be short. */
@@ -746,7 +753,7 @@ pre.code {
   justify-content: center;
   width: 100%;
 }
-/* Secondary "Pay with Bitcoin — 10% off" CTA. Subtler than the Stripe
+/* Secondary "Or pay with Bitcoin" CTA. Subtler than the Stripe
    primary but still on-brand: orange accent, transparent background,
    sized to sit naturally under the primary trial button. */
 .cta-btc {
@@ -1191,7 +1198,7 @@ pre.code {
   white-space: nowrap;
 }
 
-/* ─── Pricing page: annual + Bitcoin price line ─── */
+/* ─── Pricing page: billing-terms line under the price ─── */
 /* Sits directly under the big monthly amount in the same mono voice as
  * the on-ramp tile metas, so the alternates read as reference data
  * rather than competing headline prices. */
