@@ -61,8 +61,10 @@
 
 <!-- JSON-LD structured data: helps Google's Knowledge Graph and
      general-purpose LLMs understand the entity. The SoftwareApplication
-     entry surfaces both pricing tiers; the Organization entry ties the
-     brand to its parent company + OSS surfaces. -->
+     entry surfaces the publicly priced offers (Business is priced per
+     deal, so it carries no Offer rather than an invented price); the
+     Organization entry ties the brand to its parent company + OSS
+     surfaces. -->
 <script type="application/ld+json">
 {
   "@context": "https://schema.org",
@@ -95,26 +97,18 @@
       "offers": [
         {
           "@type": "Offer",
-          "name": "Agentic Commerce — Individual",
-          "price": "99",
+          "name": "Agentic Commerce",
+          "price": "49",
           "priceCurrency": "USD",
           "billingDuration": "P1M",
-          "description": "For solo API builders, indie SaaS, and side-project APIs going to production. Unlimited L402 endpoints, flat monthly fee, no per-transaction percentage."
-        },
-        {
-          "@type": "Offer",
-          "name": "Agentic Commerce — Business",
-          "price": "299",
-          "priceCurrency": "USD",
-          "billingDuration": "P1M",
-          "description": "For teams and platforms with multiple APIs or anyone who wants hands-on onboarding help. Adds Strike OR OpenNode as settlement provider (OpenNode requires KYB), white-glove onboarding, and direct founder access."
+          "description": "For solo API builders, indie SaaS, and teams putting an API into production. Unlimited L402 endpoints, flat monthly fee, no per-transaction percentage."
         },
         {
           "@type": "Offer",
           "name": "Free Producer Sandbox",
           "price": "0",
           "priceCurrency": "USD",
-          "description": "Free producer tier — 3 L402 endpoints, capped monthly challenge volume, 1,000 sats max per challenge. No card. AI agents can also activate a 30-day Individual trial without a card by paying a ~100-sat L402 challenge (L402 Fast Lane)."
+          "description": "Free forever — 3 L402 endpoints, 200 challenges a month, 1,000 sats max per challenge. No card. AI agents can also activate a 30-day Agentic Commerce trial without a card by paying a ~100-sat L402 challenge (L402 Fast Lane)."
         }
       ]
     }
@@ -566,11 +560,11 @@ app.<span class="c-fn">get</span>(<span class="c-str">"/api/premium/data"</span>
        production plan cards below) ─── -->
   <h3 class="pricing-subhead">Start three ways.</h3>
   <p class="onboarding-note">
-    <strong>Free Producer Sandbox</strong> is a no-card way to prove L402
-    works. <strong>L402 Fast Lane</strong> unlocks the full Individual
-    trial with a 100-sat Lightning payment instead of a card.
-    <strong>Stripe Trial</strong> is the conventional 30-day card trial.
-    All three are live today — pick the on-ramp that fits.
+    <strong>Free Producer Sandbox</strong> is free forever, no card — the
+    way to prove L402 works. <strong>L402 Fast Lane</strong> unlocks the
+    full Agentic Commerce trial with a 100-sat Lightning payment instead
+    of a card. <strong>Stripe Trial</strong> is the conventional 30-day
+    card trial. All three are live today — pick the on-ramp that fits.
   </p>
 
   <div class="onboarding-strip">
@@ -579,24 +573,25 @@ app.<span class="c-fn">get</span>(<span class="c-str">"/api/premium/data"</span>
       <div class="onboarding-tile-head">
         <span class="onboarding-tile-name">Free Producer Sandbox</span>
       </div>
-      <p class="onboarding-tile-meta">No card · 3 endpoints · 200 challenges/mo</p>
+      <p class="onboarding-tile-meta">Free forever · 3 endpoints · 200 challenges/mo</p>
       <p class="onboarding-tile-desc">
-        Create your first L402 producer endpoints and prove the basics.
+        Create your first L402 producer endpoints and prove the basics —
+        up to 1,000 sats per challenge. No card, ever.
       </p>
       <a class="onboarding-tile-cta"
          href="https://api.lightningenable.com/dashboard/signup?utm_source=site&utm_medium=pricing-page&utm_campaign=gtm-aug-2026"
          target="_blank" rel="noopener noreferrer">Start free →</a>
     </div>
 
-    <!-- On-ramp 2 — L402 Fast Lane. NOTE: this is NOT the
-         "Pay with Bitcoin — 10% off" subscription discount in the plan
-         cards below. Fast Lane pays a 100-sat L402 challenge to unlock a
-         no-card trial. -->
+    <!-- On-ramp 2 — L402 Fast Lane. NOTE: this is NOT the same thing as
+         paying the subscription itself in Bitcoin (the /BitcoinCheckout
+         link in the plan card below). Fast Lane pays a 100-sat L402
+         challenge to unlock a no-card trial. -->
     <div class="onboarding-tile">
       <div class="onboarding-tile-head">
         <span class="onboarding-tile-name">L402 Fast Lane</span>
       </div>
-      <p class="onboarding-tile-meta">No card · 100 sats → 30-day Individual trial</p>
+      <p class="onboarding-tile-meta">No card · 100 sats → 30-day Agentic Commerce trial</p>
       <p class="onboarding-tile-desc">
         Pay a 100-sat L402 challenge to unlock the full trial. Signup runs
         on L402: 402 → pay → macaroon proof → activated.
@@ -611,7 +606,7 @@ app.<span class="c-fn">get</span>(<span class="c-str">"/api/premium/data"</span>
       <div class="onboarding-tile-head">
         <span class="onboarding-tile-name">Stripe Trial</span>
       </div>
-      <p class="onboarding-tile-meta">Card · 30-day Individual trial</p>
+      <p class="onboarding-tile-meta">Card · 30-day Agentic Commerce trial</p>
       <p class="onboarding-tile-desc">
         A conventional 30-day trial through Stripe Checkout. No charge
         until it ends.
@@ -627,15 +622,15 @@ app.<span class="c-fn">get</span>(<span class="c-str">"/api/premium/data"</span>
 
   <div class="pricing-grid">
     <div class="pricing-card">
-      <div class="pricing-name">Agentic Commerce — Individual</div>
-      <div class="pricing-amount">$99<span class="pricing-period">/mo</span></div>
+      <div class="pricing-name">Agentic Commerce</div>
+      <div class="pricing-amount">$49<span class="pricing-period">/mo</span></div>
       <p class="pricing-who">
-        For solo API builders, indie SaaS, and side-project APIs going
-        to production.
+        For solo API builders, indie SaaS, and teams putting an API
+        into production.
       </p>
       <ul class="pricing-features">
         <li><strong>Unlimited L402 endpoints</strong> — gate every route on every API you own</li>
-        <li>Strike as settlement provider</li>
+        <li>Connect Strike or OpenNode — every payment settles into your own provider account</li>
         <li>Per-endpoint pricing — different routes can charge different rates</li>
         <li>Live dashboard + per-request payment feed</li>
         <li>30-day free trial — card required (or go card-free via <a href="https://docs.lightningenable.com/getting-started/activate-with-lightning">L402 Fast Lane</a>)</li>
@@ -647,35 +642,27 @@ app.<span class="c-fn">get</span>(<span class="c-str">"/api/premium/data"</span>
         <a class="cta-btc"
            href="https://api.lightningenable.com/BitcoinCheckout?plan=individual&utm_source=site&utm_medium=pricing-page&utm_campaign=gtm-aug-2026"
            target="_blank" rel="noopener noreferrer"
-           title="Pay monthly with Bitcoin and save 10%">
-          ⚡ Pay with Bitcoin — 10% off
+           title="Pay your subscription in Bitcoin instead of with a card">
+          ⚡ Or pay with Bitcoin
         </a>
       </div>
     </div>
     <div class="pricing-card pricing-card-business">
       <div class="pricing-name">Agentic Commerce — Business</div>
-      <div class="pricing-amount">$299<span class="pricing-period">/mo</span></div>
+      <div class="pricing-amount pricing-amount-contact">Contact us</div>
       <p class="pricing-who">
-        For teams and platforms with multiple APIs or anyone who wants
-        hands-on onboarding help.
+        For teams that want onboarding help and a direct line to the
+        people building this.
       </p>
       <ul class="pricing-features">
-        <li>Everything in Individual</li>
-        <li><strong>Strike <em>or</em> OpenNode</strong> as settlement provider</li>
+        <li>Everything in Agentic Commerce</li>
         <li><strong>White-glove onboarding</strong> — we help you get set up</li>
-        <li><strong>Direct founder access</strong> — no ticket queues, talk to the team that built this</li>
-        <li>30-day free trial — card required (or go card-free via <a href="https://docs.lightningenable.com/getting-started/activate-with-lightning">L402 Fast Lane</a>)</li>
+        <li><strong>Direct founder access</strong> — no ticket queues, talk to the person who built this</li>
+        <li>Priced per deal — scoped around what you're actually shipping</li>
       </ul>
       <div class="pricing-actions">
         <a class="cta cta-primary"
-           href="https://api.lightningenable.com/Checkout?plan=l402microtransactions&utm_source=site&utm_medium=pricing-page&utm_campaign=gtm-aug-2026"
-           target="_blank" rel="noopener noreferrer">Start free trial</a>
-        <a class="cta-btc"
-           href="https://api.lightningenable.com/BitcoinCheckout?plan=l402microtransactions&utm_source=site&utm_medium=pricing-page&utm_campaign=gtm-aug-2026"
-           target="_blank" rel="noopener noreferrer"
-           title="Pay monthly with Bitcoin and save 10%">
-          ⚡ Pay with Bitcoin — 10% off
-        </a>
+           href="mailto:support@lightningenable.com?subject=Agentic%20Commerce%20for%20teams">Contact us</a>
       </div>
     </div>
   </div>
@@ -686,7 +673,7 @@ app.<span class="c-fn">get</span>(<span class="c-str">"/api/premium/data"</span>
   </p>
 
   <p class="pricing-fineprint">
-    Full plan details, annual pricing, and the Bitcoin discount:
+    Full plan details and the Free Producer Sandbox limits:
     <a href="/pricing">lightningenable.com/pricing</a>.
   </p>
 </section>
@@ -713,9 +700,9 @@ app.<span class="c-fn">get</span>(<span class="c-str">"/api/premium/data"</span>
     <details class="faq-item">
       <summary>What is the Free Producer Sandbox?</summary>
       <p>
-        A no-card way to create your first L402 producer endpoints. It
-        includes 3 endpoints, limited monthly challenge volume, and a
-        1,000-sat max challenge price — free enough to prove L402 works,
+        A free-forever, no-card way to create your first L402 producer
+        endpoints. It includes 3 endpoints, 200 challenges a month, and
+        1,000 sats max per challenge — free enough to prove L402 works,
         paid when it becomes production infrastructure. Sandbox limits may
         change as the product evolves; existing users get notice before
         material changes.
@@ -726,7 +713,7 @@ app.<span class="c-fn">get</span>(<span class="c-str">"/api/premium/data"</span>
       <summary>What is L402 Fast Lane?</summary>
       <p>
         A Bitcoin-native signup path. Pay a 100-sat L402 challenge to
-        activate a 30-day Individual trial without a credit card. The
+        activate a 30-day Agentic Commerce trial without a credit card. The
         signup flow itself runs on L402: 402 → Lightning payment →
         macaroon proof → account activated. See
         <a href="https://docs.lightningenable.com/getting-started/activate-with-lightning">Activate with Lightning</a>
@@ -737,20 +724,20 @@ app.<span class="c-fn">get</span>(<span class="c-str">"/api/premium/data"</span>
     <details class="faq-item">
       <summary>Why use L402 Fast Lane if the Free Sandbox exists?</summary>
       <p>
-        Free is the sandbox. Fast Lane is the no-card full trial. The Free
-        Sandbox lets you create a few L402 endpoints with limited usage.
-        Fast Lane unlocks the full Individual plan for 30 days without a
-        credit card.
+        Free is the sandbox, and it stays free. Fast Lane is the no-card
+        full trial. The Free Sandbox lets you create 3 L402 endpoints with
+        limited usage, for as long as you want. Fast Lane unlocks the full
+        Agentic Commerce plan for 30 days without a credit card.
       </p>
     </details>
 
     <details class="faq-item">
-      <summary>How is Fast Lane different from "Pay with Bitcoin — 10% off"?</summary>
+      <summary>How is Fast Lane different from paying with Bitcoin?</summary>
       <p>
-        They're two different things. <strong>Pay with Bitcoin — 10% off</strong>
-        means paying an actual subscription with Bitcoin instead of a card,
-        for a discount. <strong>L402 Fast Lane</strong> means paying a
-        100-sat L402 challenge to activate a no-card 30-day trial.
+        They're two different things. <strong>Pay with Bitcoin</strong>
+        means paying the actual subscription in Bitcoin instead of with a
+        card. <strong>L402 Fast Lane</strong> means paying a 100-sat L402
+        challenge to activate a no-card 30-day trial.
       </p>
     </details>
 
@@ -767,8 +754,9 @@ app.<span class="c-fn">get</span>(<span class="c-str">"/api/premium/data"</span>
     <details class="faq-item">
       <summary>What happens after the L402 Fast Lane trial?</summary>
       <p>
-        Add billing to keep Individual features. Otherwise, the account
-        automatically moves to the Free Producer Sandbox.
+        Add billing to keep the Agentic Commerce features. Otherwise, the
+        account automatically moves to the Free Producer Sandbox — you
+        keep the account either way.
       </p>
     </details>
 

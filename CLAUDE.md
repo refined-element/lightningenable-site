@@ -116,11 +116,15 @@ Both workflows open / comment on a GitHub Issue on failure, with full `gh issue 
 
 **`api/run-agent.js` ALLOWED_ORIGINS** already includes both `lightningenable.com` and `www.lightningenable.com` — no change needed on the agent-side after the LS-C cutover.
 
-**Pricing card facts (do NOT add unshipped claims):**
-- Individual: Strike only as settlement provider
-- Business: Strike OR OpenNode (OpenNode requires KYB, hence Business-only)
-- Business: white-glove onboarding + direct founder access (real differentiators)
+**Pricing card facts (repriced 2026-09-01, R1B-c — do NOT add unshipped claims):**
+- **One public paid tier: "Agentic Commerce", $49/mo.** No "Individual" suffix — that display name is retired. The internal tier IDs in checkout links (`?plan=individual`, `l402microtransactions`) are UNCHANGED; only copy and numbers moved.
+- **No annual price anywhere.** No `$490/yr`, no `$2,990/yr`, no "save 2 months".
+- **Business has no public number — it is "Contact us"** (`mailto:support@lightningenable.com`), priced per deal, for teams that want onboarding help and direct access. Its only listed differentiators are white-glove onboarding + direct founder access, which are real.
+- **"Strike OR OpenNode as settlement provider" is NOT a Business perk and never was** — provider choice is per-merchant (`Merchant.PaymentProvider`) and is not gated by plan tier anywhere in the product. Do not re-add it.
+- **Free Producer Sandbox is promoted as free forever:** 3 endpoints, 200 challenges/month, 1,000 sats max per challenge, no card. Those three caps are the canonical numbers on this surface — don't invent new ones.
+- **Bitcoin checkout is demoted, not retired.** The "Pay with Bitcoin — 10% off" promo CTA is gone (the discount is not advertised at the new price); a plain "⚡ Or pay with Bitcoin" link to `/BitcoinCheckout` stays on the paid card. Don't delete the link target.
 - Higher rate limits and multi-currency are NOT separately offered per tier — anyone implying that on the marketing surface is wrong. See commit `3beaf21` for the correction.
+- **`tests/pricing-copy.test.js` enforces all of the above** against every text file under `public/` (retired prices, annual pricing, the "Individual" display name, the OpenNode differentiator, the sandbox caps, and banned custody language). If a copy change trips it, fix the copy — don't loosen the test without an owner decision.
 
 **Trust strip merchants (verifiable proof, not aspirational):**
 - Great Ghee — `https://greatghee.com/` — Shopify

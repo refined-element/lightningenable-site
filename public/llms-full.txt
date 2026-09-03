@@ -49,7 +49,7 @@ The same two capabilities are exposed as MCP tools (`create_l402_challenge`, `ve
 
 The producer side needs a merchant API key. Three on-ramps, two of which need no card:
 
-**1. L402 Fast Lane (recommended for agents).** Pay one ~100-sat L402 challenge and receive a merchant API key with a full 30-day Agentic Commerce — Individual trial. The signup runs on the same protocol you'll use to sell:
+**1. L402 Fast Lane (recommended for agents).** Pay one ~100-sat L402 challenge and receive a merchant API key with a full 30-day Agentic Commerce trial. The signup runs on the same protocol you'll use to sell:
 
 ```
 POST https://api.lightningenable.com/api/signup/l402
@@ -65,11 +65,11 @@ Response: `402 Payment Required` with `WWW-Authenticate: L402 macaroon="...", in
 - **First success:** connect your payment provider first (Strike or OpenNode API key in the dashboard Settings — challenges settle to YOUR provider account; without one, challenge creation returns 400), then create a 1-sat challenge with the new key (`POST /api/l402/challenges` or the `create_l402_challenge` MCP tool), pay it with your own wallet, and confirm with `verify_l402_payment` — an end-to-end producer proof for about 1 sat, no API build required.
 - Running the MCP server? The `create_lightning_enable_account` tool performs the whole flow with the connected wallet and saves the key to `~/.lightning-enable/config.json`, unlocking the producer and ASA tools.
 - The activation fee follows the MCP server's normal budget and confirmation rules — an above-threshold fee requires the human operator's confirmation code, so check your budget or ask your operator first.
-- After the trial: add billing to keep Individual features, or do nothing and the account auto-downgrades to the **Free Producer Sandbox**. You keep the account and endpoints either way — no card trap.
+- After the trial: add billing to keep the paid plan's features, or do nothing and the account auto-downgrades to the **Free Producer Sandbox**. You keep the account and endpoints either way — no card trap.
 
-**2. Free Producer Sandbox.** Free, no card, no payment. Email + magic link at `https://api.lightningenable.com/dashboard/signup`. Limits: 3 endpoints, capped monthly challenge volume, 1,000 sats max per challenge. Good for proving the flow before paying anything.
+**2. Free Producer Sandbox.** Free forever, no card, no payment. Email + magic link at `https://api.lightningenable.com/dashboard/signup`. Limits: 3 endpoints, 200 challenges per month, 1,000 sats max per challenge. Good for proving the flow before paying anything, and it does not expire.
 
-**3. Card checkout.** Conventional Stripe trial: `https://api.lightningenable.com/Checkout?plan=individual` (Individual) or `https://api.lightningenable.com/Checkout?plan=l402microtransactions` (Business).
+**3. Card checkout.** Conventional Stripe trial for the Agentic Commerce plan: `https://api.lightningenable.com/Checkout?plan=individual` (`individual` is the unchanged internal tier ID for the $49/mo plan).
 
 Guide: `https://docs.lightningenable.com/getting-started/activate-with-lightning`.
 
@@ -119,12 +119,13 @@ There is no automated offer/counter/accept negotiation loop — the relay relays
 
 ## Pricing
 
-- **Agentic Commerce — Individual:** $99/month. For solo API builders, indie SaaS, and side-project APIs going to production. Unlimited L402 endpoints, flat fee, no per-transaction percentage. 30-day free trial.
-- **Agentic Commerce — Business:** $299/month. For teams and platforms with multiple APIs, or anyone who wants hands-on onboarding help. Everything in Individual, plus choice of Strike or OpenNode as settlement provider, white-glove onboarding, direct founder access, and priority support. 30-day free trial.
+- **Free Producer Sandbox:** $0, free forever, no card. 3 endpoints, 200 challenges per month, 1,000 sats max per challenge.
+- **Agentic Commerce:** $49/month. The one paid plan. For solo API builders, indie SaaS, and teams putting an API into production. Unlimited L402 endpoints, flat fee, no per-transaction percentage. 30-day free trial. Payable by card or in Bitcoin.
+- **Agentic Commerce — Business:** no public price — priced per deal. For teams that want hands-on onboarding help and direct access to the people building this. Contact `support@lightningenable.com`.
 
 Lightning Enable charges a flat monthly subscription. It does NOT take a percentage of payments. One million 1-sat requests earn the API provider 1,000,000 sats — Lightning Enable does not touch any of them. Your chosen settlement provider (Strike or OpenNode) custodies every payment.
 
-Signup: three on-ramps — the **L402 Fast Lane** (~100 sats, no card: `POST https://api.lightningenable.com/api/signup/l402`), the **Free Producer Sandbox** (free, no card: `https://api.lightningenable.com/dashboard/signup`), or card checkout at `https://api.lightningenable.com/Checkout?plan=individual` (Individual) / `https://api.lightningenable.com/Checkout?plan=l402microtransactions` (Business). See "Get a producer account autonomously" above.
+Signup: three on-ramps — the **L402 Fast Lane** (~100 sats, no card: `POST https://api.lightningenable.com/api/signup/l402`), the **Free Producer Sandbox** (free, no card: `https://api.lightningenable.com/dashboard/signup`), or card checkout at `https://api.lightningenable.com/Checkout?plan=individual`. See "Get a producer account autonomously" above.
 
 ## Ecommerce
 
