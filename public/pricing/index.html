@@ -107,8 +107,9 @@
   <p class="section-lede">
     A flat monthly subscription, never a percentage of your revenue.
     One million 1-sat calls earn you 1,000,000 sats — you keep every
-    one of them. Lightning Enable is API middleware; your settlement
-    provider (Strike or OpenNode) handles custody and settlement.
+    one of them. Lightning Enable is API middleware and does not hold
+    funds; the wallet (or payment provider) you connect facilitates
+    custody and settlement.
   </p>
 </section>
 
@@ -150,7 +151,8 @@
       <p class="onboarding-tile-meta">No card · 100 sats → 30-day Agentic Commerce trial</p>
       <p class="onboarding-tile-desc">
         Pay a 100-sat L402 challenge to unlock the full trial. Signup runs
-        on L402: 402 → pay → macaroon proof → activated.
+        on L402: 402 → pay → macaroon proof → activated. An agent running
+        the MCP server can do this for itself.
       </p>
       <a class="onboarding-tile-cta"
          href="https://docs.lightningenable.com/getting-started/activate-with-lightning?utm_source=site&utm_medium=pricing-page&utm_campaign=gtm-aug-2026"
@@ -172,6 +174,15 @@
          target="_blank" rel="noopener noreferrer">Start trial →</a>
     </div>
   </div>
+
+  <!-- Both 30-day trials land in the same place, so state the exit path
+       once rather than per tile. -->
+  <p class="pricing-fineprint">
+    Both trials end the same way: add billing to stay on Agentic Commerce,
+    or do nothing and the account moves to the Free Producer Sandbox —
+    3 endpoints, 200 challenges a month, 1,000 sats max per challenge. You
+    keep the account and your endpoints either way.
+  </p>
 </section>
 
 <!-- ─── Production plans ─── -->
@@ -196,7 +207,7 @@
       </p>
       <ul class="pricing-features">
         <li><strong>Unlimited L402 endpoints</strong> — gate every route on every API you own</li>
-        <li>Connect Strike or OpenNode — every payment settles into your own provider account</li>
+        <li>Connect your own wallet over Nostr Wallet Connect, or Strike or OpenNode — every payment settles into an account you control</li>
         <li>Per-endpoint pricing — different routes can charge different rates</li>
         <li>Live dashboard + per-request payment feed</li>
         <li>30-day free trial — card required (or go card-free via <a href="https://docs.lightningenable.com/getting-started/activate-with-lightning?utm_source=site&utm_medium=pricing-page&utm_campaign=gtm-aug-2026" target="_blank" rel="noopener noreferrer">L402 Fast Lane</a>)</li>
@@ -236,9 +247,9 @@
   </div>
 
   <p class="pricing-fineprint">
-    Lightning Enable is API middleware and does not hold funds. Your
-    payment provider (Strike or OpenNode) facilitates custody and
-    settlement.
+    Lightning Enable is API middleware and does not hold funds. The wallet
+    (or payment provider) you connect — your own wallet over Nostr Wallet
+    Connect, Strike, or OpenNode — facilitates custody and settlement.
   </p>
 </section>
 
@@ -261,10 +272,11 @@
     <details class="faq-item">
       <summary>How does custody work?</summary>
       <p>
-        Lightning Enable is API middleware and does not hold funds. Your
-        payment provider (Strike or OpenNode) facilitates custody and
+        Lightning Enable is API middleware and does not hold funds. The
+        wallet (or payment provider) you connect facilitates custody and
         settlement — payments from your customers settle directly into
-        your own provider account.
+        your own wallet over Nostr Wallet Connect, or into your own Strike
+        or OpenNode account.
       </p>
     </details>
 
@@ -282,8 +294,8 @@
       <summary>Do you take a percentage of my revenue?</summary>
       <p>
         No. Lightning Enable charges a flat monthly subscription, not a
-        take rate. Every sat an agent pays your API lands with your
-        settlement provider — you keep 100% of it.
+        take rate. Every sat an agent pays your API lands in the wallet or
+        provider account you connected — you keep 100% of it.
       </p>
     </details>
   </div>

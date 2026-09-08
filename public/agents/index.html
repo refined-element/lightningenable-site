@@ -4,14 +4,14 @@
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1.0" />
 <title>For AI agents — pay any API over Lightning | Lightning Enable</title>
-<meta name="description" content="How AI agents pay APIs with L402: HTTP 402 + a Lightning payment + a macaroon credential. Install the free, open-source MCP server and your agent can pay per request — no account, no API key, no card." />
+<meta name="description" content="How AI agents pay APIs with L402 — and sell their own. The free, open-source MCP server lets an agent pay per request with no account or card, then open a producer account, connect a wallet over Nostr Wallet Connect, and publish a paid endpoint." />
 
 <link rel="canonical" href="https://www.lightningenable.com/agents" />
 <link rel="alternate" type="text/plain" href="/llms.txt" title="llms.txt" />
 <link rel="alternate" type="text/plain" href="/llms-full.txt" title="llms-full.txt" />
 
 <meta property="og:title" content="For AI agents — pay any API over Lightning" />
-<meta property="og:description" content="HTTP 402 + Lightning + macaroons: payment becomes authorization. Install the free MCP server and your agent pays APIs per request — no account, no card." />
+<meta property="og:description" content="HTTP 402 + Lightning + macaroons: payment becomes authorization. Install the free MCP server and your agent pays APIs per request — and can publish a paid API of its own." />
 <meta property="og:type" content="website" />
 <meta property="og:url" content="https://www.lightningenable.com/agents" />
 <meta property="og:site_name" content="Lightning Enable" />
@@ -47,7 +47,7 @@
         "@type": "Offer",
         "price": "0",
         "priceCurrency": "USD",
-        "description": "Free and open-source (MIT). Wallet, invoice, L402, budget, and API-discovery tools work with no Lightning Enable account; the create_lightning_enable_account tool can provision a producer account in-band (~100 sats over Lightning, no card)."
+        "description": "Free and open-source (MIT). Wallet, invoice, L402, budget, and API-discovery tools work with no Lightning Enable account; the create_lightning_enable_account tool can provision a producer account in-band (~100 sats over Lightning, no card), and the l402_producer tool then configures a receiving wallet over Nostr Wallet Connect and publishes a priced endpoint."
       },
       "publisher": { "@id": "https://www.lightningenable.com/#org" }
     },
@@ -55,10 +55,11 @@
       "@type": "WebPage",
       "url": "https://www.lightningenable.com/agents",
       "name": "For AI agents — pay any API over Lightning",
-      "description": "How AI agents pay APIs with L402, and how an agent creates a Lightning Enable producer account autonomously via the L402 Fast Lane (~100 sats, no card).",
+      "description": "How AI agents pay APIs with L402, how an agent creates a Lightning Enable producer account autonomously via the L402 Fast Lane (~100 sats, no card), and how it then sells: a receiving wallet over Nostr Wallet Connect and a priced endpoint published from MCP tool calls.",
       "significantLink": [
         "https://api.lightningenable.com/api/manifests/registry",
         "https://docs.lightningenable.com/getting-started/activate-with-lightning",
+        "https://github.com/refined-element/lightning-enable-skills/tree/main/skills/producer-setup",
         "https://www.lightningenable.com/llms.txt"
       ]
     }
@@ -113,7 +114,9 @@
     APIs, data, tools — paid per request, in seconds, with no account,
     no API key, and no card on file. The free, open-source Lightning
     Enable MCP server gives any MCP-capable agent a Lightning wallet
-    and the L402 protocol. Here's how it works.
+    and the L402 protocol — and, on the
+    <a href="#sell">selling side</a>, everything it needs to publish a
+    paid API of its own. Here's how it works.
   </p>
 </section>
 
@@ -212,6 +215,81 @@ docker pull refinedelement/lightning-enable-mcp:latest   <span class="c-comment"
   </div>
 </section>
 
+<!-- ─── Sell, don't just buy ─── -->
+<!-- Written for the agent reading this page: exact tool + action names,
+     in call order. These must track the shipped MCP surface. -->
+<section class="section" id="sell">
+  <h2 class="section-title">Then sell: your agent as the producer.</h2>
+  <p class="section-lede">
+    The same MCP server puts your agent on the selling side. It opens its
+    own producer account, points payouts at a wallet the human controls,
+    publishes a priced endpoint, and collects sats — every step a tool
+    call, with no human in the payment plumbing. The human supplies four
+    things: a funded Lightning wallet, a spend ceiling, the API, and the
+    price.
+  </p>
+
+  <pre class="code"><code><span class="c-comment"># The whole ask, from the human</span>
+Set me up to sell my API over Lightning at 5 sats per call.</code></pre>
+
+  <ul class="why-list">
+    <li>
+      <strong>1 · Open the account — <code>create_lightning_enable_account</code>.</strong>
+      Pays the ~100-sat L402 Fast Lane challenge from the connected
+      wallet and returns a merchant API key with a 30-day Agentic
+      Commerce trial, saved to <code>~/.lightning-enable/config.json</code>.
+      No card. Use the operator's real email, never an invented one.
+    </li>
+    <li>
+      <strong>2 · Point payouts at a wallet — <code>l402_producer</code>, action <code>configure_receive</code>.</strong>
+      Registers a Nostr Wallet Connect connection string as the receiving
+      wallet, so sats settle into a wallet the human already runs. No
+      Strike or OpenNode account to open, no KYB. <code>setup_wallet</code>
+      handles the spending side.
+    </li>
+    <li>
+      <strong>3 · Publish a priced endpoint — <code>create_proxy</code>, <code>add_endpoint</code>, <code>publish</code>.</strong>
+      Gates the upstream API and prices each route in sats. The proxy
+      serves an OpenAPI 3.1 document whose <code>x-payment</code> block
+      states the scheme, supported protocols, <code>price_sats</code>,
+      token validity, and auth header format, plus a 402 response per
+      operation — so a buying agent reads the price before it calls.
+    </li>
+    <li>
+      <strong>4 · Take payment — the buyer's 402 loop.</strong>
+      A buying agent calls the endpoint, gets the 402, pays the invoice,
+      and retries with proof. The payment settles wallet to wallet.
+      <code>status</code> and <code>list_challenges</code> report what has
+      been minted and what has been paid.
+    </li>
+    <li>
+      <strong>5 · Or run the skill — <code>producer-setup</code>.</strong>
+      The <code>producer-setup</code> Claude Skill drives steps 1 through 4
+      in one sequence, so a single instruction from the human is enough.
+      <code>l402_producer</code> also carries <code>create</code> and
+      <code>verify</code> for minting and checking individual challenges.
+    </li>
+  </ul>
+
+  <p class="section-lede">
+    The human keeps the boundaries: which wallet you may use, how much you
+    may spend, which API you may sell, and at what price. Lightning Enable
+    does not hold funds — the wallet (or payment provider) facilitates
+    custody and settlement.
+  </p>
+
+  <div class="install-row">
+    <span class="install-label">Claude Skill:</span>
+    <a class="repo-link"
+       href="https://github.com/refined-element/lightning-enable-skills/tree/main/skills/producer-setup"
+       target="_blank" rel="noopener noreferrer">lightning-enable-skills — producer-setup</a>
+  </div>
+  <div class="install-row">
+    <span class="install-label">Agent brief:</span>
+    <a class="repo-link" href="/llms-full.txt">lightningenable.com/llms-full.txt</a>
+  </div>
+</section>
+
 <!-- ─── Free vs paid split ─── -->
 <section class="section" id="free-vs-paid">
   <h2 class="section-title">What's free, what's paid.</h2>
@@ -243,6 +321,7 @@ docker pull refinedelement/lightning-enable-mcp:latest   <span class="c-comment"
         <li>Create L402-protected endpoints agents can buy from</li>
         <li>Per-endpoint pricing, live revenue dashboard</li>
         <li>Agent-to-agent commerce tools (ASA over Nostr)</li>
+        <li>Set up by your own agent — receive to your own wallet over NWC</li>
         <li>Free sandbox, free forever: 3 endpoints, 200 challenges/mo, no card</li>
         <li>Production plan: $49/mo — flat fee, no take rate</li>
       </ul>
@@ -258,7 +337,8 @@ docker pull refinedelement/lightning-enable-mcp:latest   <span class="c-comment"
     <strong>Building an agent?</strong> The MCP is free — install it and
     your agent can pay any L402 API today.
     <strong>Building an API?</strong> Gate your first endpoint in the
-    free sandbox, no card required.
+    free sandbox, no card required — or hand the setup to your agent with
+    the <a href="#sell"><code>producer-setup</code> skill</a>.
   </p>
   <div class="callout-ctas">
     <a class="cta cta-primary"

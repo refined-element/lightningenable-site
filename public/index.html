@@ -147,12 +147,13 @@
   <p class="hero-sub">
     Software paying software, per request, over Lightning. Drop into
     your existing API — your subscriptions, rate limits, and API keys
-    stay exactly as they are.
+    stay exactly as they are. Or tell your own agent to set it up:
+    account, wallet, priced endpoint, no human in the payment plumbing.
   </p>
   <div class="hero-split" aria-label="Two sides of Lightning Enable">
     <span>
       <strong>For API builders:</strong> create L402 producer endpoints
-      and get paid per request.
+      and get paid per request — or have your agent do the setup.
     </span>
     <span>
       <strong>For agents:</strong> install the free, open-source MCP with
@@ -294,6 +295,77 @@
          href="https://docs.lightningenable.com/products/agentic-commerce/l402-producer-api"
          target="_blank" rel="noopener noreferrer">Create a producer endpoint</a>
     </div>
+  </div>
+</section>
+
+<!-- ─── Sell with your agent ─── -->
+<!-- The producer side is now reachable entirely from MCP tool calls, so
+     the agent can stand up the selling side itself. Steps use the plain
+     .why-list numbered pattern (single column, same as /agents) — no new
+     CSS. Tool and action names here must match the shipped MCP surface. -->
+<section id="sell-with-your-agent" class="section">
+  <h2 class="section-title">Sell with your agent.</h2>
+  <p class="section-lede">
+    Every step of the producer side is an MCP tool call, so your agent can
+    stand up the selling side on its own. You supply a funded Lightning
+    wallet, a spend ceiling, the API, and the price. Nothing else needs a
+    human in the payment plumbing.
+  </p>
+
+  <pre class="code"><code><span class="c-comment"># What you say</span>
+Set me up to sell my API over Lightning at 5 sats per call.</code></pre>
+
+  <ul class="why-list">
+    <li>
+      <strong>1 · It opens the account.</strong>
+      The agent calls <code>create_lightning_enable_account</code>, pays a
+      ~100-sat L402 challenge from your wallet, and gets a merchant API
+      key with a 30-day Agentic Commerce trial. No card, no checkout page.
+    </li>
+    <li>
+      <strong>2 · It connects your wallet to receive.</strong>
+      <code>l402_producer</code> action <code>configure_receive</code>
+      points Lightning Enable at your own wallet over Nostr Wallet
+      Connect. No Strike or OpenNode account to open, no KYB — the sats
+      arrive in the wallet you already run.
+    </li>
+    <li>
+      <strong>3 · It publishes the paid endpoint.</strong>
+      <code>create_proxy</code>, <code>add_endpoint</code>, and
+      <code>publish</code> gate your API and price each route. The proxy
+      serves an OpenAPI 3.1 description carrying <code>x-payment</code>,
+      so a buying agent reads the price before it calls.
+    </li>
+    <li>
+      <strong>4 · It gets paid, wallet to wallet.</strong>
+      A buyer's agent hits the endpoint, gets a 402, pays the invoice, and
+      retries with proof. The payment settles from its wallet into yours —
+      no invoice to chase, no payout schedule.
+    </li>
+    <li>
+      <strong>5 · All of it from MCP.</strong>
+      The <code>l402_producer</code> actions ship in the free, open-source
+      MCP server, and the <code>producer-setup</code> Claude Skill walks
+      an agent through the whole sequence in one go.
+    </li>
+  </ul>
+
+  <p class="section-lede">
+    You keep the boundaries: which wallet it may use, how much it may
+    spend, which API it may sell, and at what price. Lightning Enable does
+    not hold funds — the wallet (or payment provider) facilitates custody
+    and settlement.
+  </p>
+
+  <div class="install-row">
+    <span class="install-label">Claude Skill:</span>
+    <a class="repo-link"
+       href="https://github.com/refined-element/lightning-enable-skills/tree/main/skills/producer-setup"
+       target="_blank" rel="noopener noreferrer">lightning-enable-skills — producer-setup</a>
+  </div>
+  <div class="install-row">
+    <span class="install-label">MCP server:</span>
+    <a class="repo-link" href="https://github.com/refined-element/lightning-enable-mcp" target="_blank" rel="noopener noreferrer">github.com/refined-element/lightning-enable-mcp</a>
   </div>
 </section>
 
@@ -552,8 +624,8 @@ app.<span class="c-fn">get</span>(<span class="c-str">"/api/premium/data"</span>
   <h2 class="section-title">Pricing.</h2>
   <p class="section-lede">
     A flat monthly subscription, never a percentage of your revenue.
-    Lightning Enable is middleware and never holds your funds — your
-    provider (Strike or OpenNode) custodies and settles every payment.
+    Lightning Enable is middleware and does not hold funds — the wallet
+    (or payment provider) you connect facilitates custody and settlement.
   </p>
 
   <!-- ─── Start three ways (lightweight on-ramps, subordinate to the
@@ -630,7 +702,7 @@ app.<span class="c-fn">get</span>(<span class="c-str">"/api/premium/data"</span>
       </p>
       <ul class="pricing-features">
         <li><strong>Unlimited L402 endpoints</strong> — gate every route on every API you own</li>
-        <li>Connect Strike or OpenNode — every payment settles into your own provider account</li>
+        <li>Connect your own wallet over Nostr Wallet Connect, or Strike or OpenNode — every payment settles into an account you control</li>
         <li>Per-endpoint pricing — different routes can charge different rates</li>
         <li>Live dashboard + per-request payment feed</li>
         <li>30-day free trial — card required (or go card-free via <a href="https://docs.lightningenable.com/getting-started/activate-with-lightning">L402 Fast Lane</a>)</li>
@@ -668,8 +740,9 @@ app.<span class="c-fn">get</span>(<span class="c-str">"/api/premium/data"</span>
   </div>
 
   <p class="pricing-fineprint">
-    Lightning Enable does not hold funds. Your chosen settlement provider
-    (Strike or OpenNode) custodies every payment.
+    Lightning Enable does not hold funds. The wallet (or payment provider)
+    you connect — your own wallet over Nostr Wallet Connect, Strike, or
+    OpenNode — facilitates custody and settlement.
   </p>
 
   <p class="pricing-fineprint">
@@ -694,6 +767,19 @@ app.<span class="c-fn">get</span>(<span class="c-str">"/api/premium/data"</span>
         Yes. The Lightning Enable MCP server is open-source (MIT) and free
         to install. Connect Strike or NWC and your agent can pay and access
         L402 APIs — no hosted MCP and no Lightning node required.
+      </p>
+    </details>
+
+    <details class="faq-item">
+      <summary>Can my agent set up the selling side without me?</summary>
+      <p>
+        Yes. With the MCP server it opens the account, connects your
+        Lightning wallet over Nostr Wallet Connect, publishes the priced
+        endpoint, and starts collecting sats — see
+        <a href="#sell-with-your-agent">Sell with your agent</a>. You still
+        provide the funded wallet, the spend ceiling, the API, and the
+        price. Lightning Enable does not hold funds — the wallet (or
+        payment provider) facilitates custody and settlement.
       </p>
     </details>
 
