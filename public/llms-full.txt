@@ -45,7 +45,7 @@ Docs: `https://docs.lightningenable.com/products/agentic-commerce/l402-producer-
 
 The same capabilities are exposed as MCP tools, which means an agent can act as a **seller** — minting challenges for its own services — not just a buyer. See "Sell your own API without a human" below.
 
-**Where the money lands.** The merchant chooses the receiving side: their own Lightning wallet over **Nostr Wallet Connect**, or a **Strike** or **OpenNode** account. The NWC path needs no provider account and no KYB — sats settle into a wallet the merchant already runs. Lightning Enable does not hold funds in any of these; the wallet (or payment provider) facilitates custody and settlement.
+**Where the money lands.** The merchant chooses the receiving side: their own Lightning wallet over **Nostr Wallet Connect**, or a **Strike** or **OpenNode** account. The NWC path needs no provider account — sats settle into a wallet the merchant already runs. Lightning Enable does not hold funds in any of these; the wallet (or payment provider) facilitates custody and settlement.
 
 ## Get a producer account autonomously (for agents)
 
@@ -85,7 +85,7 @@ Set me up to sell my API over Lightning at 5 sats per call.
 
 **1 — Open the account.** `create_lightning_enable_account` pays the ~100-sat L402 Fast Lane challenge from the connected wallet and returns a merchant API key with a 30-day Agentic Commerce trial, written to `~/.lightning-enable/config.json`. No card. Use the operator's real email, never an invented one (see the semantics and refund caveats in the section above).
 
-**2 — Connect a wallet to receive.** `l402_producer` action `configure_receive` registers a Nostr Wallet Connect connection string as the merchant's receiving wallet. Payments then settle into a wallet the human already runs — no Strike or OpenNode account to open, no KYB. The spending side is configured separately with `setup_wallet`.
+**2 — Connect a wallet to receive.** `l402_producer` action `configure_receive` registers a Nostr Wallet Connect connection string as the merchant's receiving wallet. Payments then settle into a wallet the human already runs — no Strike or OpenNode account to open. The spending side is configured separately with `setup_wallet`.
 
 **3 — Publish the paid endpoint.** `l402_producer` actions `create_proxy`, `add_endpoint`, and `publish` gate the upstream API and price each route in sats. The proxy then serves an OpenAPI 3.1 description:
 
