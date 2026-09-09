@@ -113,85 +113,13 @@
   </p>
 </section>
 
-<!-- ─── Start three ways (trial on-ramps) ─── -->
-<section class="section" id="trials">
-  <h2 class="pricing-subhead">Start three ways.</h2>
-  <p class="onboarding-note">
-    <strong>Free Producer Sandbox</strong> is free forever, no card — the
-    way to prove L402 works. <strong>L402 Fast Lane</strong> unlocks the
-    full Agentic Commerce trial with a 100-sat Lightning payment instead
-    of a card. <strong>Stripe Trial</strong> is the conventional 30-day
-    card trial. All three are live today — pick the on-ramp that fits.
-  </p>
-
-  <div class="onboarding-strip">
-    <!-- On-ramp 1 — Free Producer Sandbox -->
-    <div class="onboarding-tile">
-      <div class="onboarding-tile-head">
-        <span class="onboarding-tile-name">Free Producer Sandbox</span>
-      </div>
-      <p class="onboarding-tile-meta">Free forever · 3 endpoints · 200 challenges/mo</p>
-      <p class="onboarding-tile-desc">
-        Create your first L402 producer endpoints and prove the basics —
-        up to 1,000 sats per challenge. Email magic link, no card, ever.
-        It does not expire.
-      </p>
-      <a class="onboarding-tile-cta"
-         href="https://api.lightningenable.com/dashboard/signup?utm_source=site&utm_medium=pricing-page&utm_campaign=gtm-aug-2026"
-         target="_blank" rel="noopener noreferrer">Start free →</a>
-    </div>
-
-    <!-- On-ramp 2 — L402 Fast Lane. NOTE: distinct from paying the
-         subscription itself in Bitcoin (the /BitcoinCheckout link
-         below). Fast Lane buys a trial; BitcoinCheckout buys a plan. -->
-    <div class="onboarding-tile">
-      <div class="onboarding-tile-head">
-        <span class="onboarding-tile-name">L402 Fast Lane</span>
-      </div>
-      <p class="onboarding-tile-meta">No card · 100 sats → 30-day Agentic Commerce trial</p>
-      <p class="onboarding-tile-desc">
-        Pay a 100-sat L402 challenge to unlock the full trial. Signup runs
-        on L402: 402 → pay → macaroon proof → activated. An agent running
-        the MCP server can do this for itself.
-      </p>
-      <a class="onboarding-tile-cta"
-         href="https://docs.lightningenable.com/getting-started/activate-with-lightning?utm_source=site&utm_medium=pricing-page&utm_campaign=gtm-aug-2026"
-         target="_blank" rel="noopener noreferrer">Activate with Lightning →</a>
-    </div>
-
-    <!-- On-ramp 3 — Stripe Trial -->
-    <div class="onboarding-tile">
-      <div class="onboarding-tile-head">
-        <span class="onboarding-tile-name">Stripe Trial</span>
-      </div>
-      <p class="onboarding-tile-meta">Card · 30-day trial · $0 today</p>
-      <p class="onboarding-tile-desc">
-        A conventional 30-day trial through Stripe Checkout. No charge
-        until it ends.
-      </p>
-      <a class="onboarding-tile-cta"
-         href="https://api.lightningenable.com/Checkout?plan=individual&utm_source=site&utm_medium=pricing-page&utm_campaign=gtm-aug-2026"
-         target="_blank" rel="noopener noreferrer">Start trial →</a>
-    </div>
-  </div>
-
-  <!-- Both 30-day trials land in the same place, so state the exit path
-       once rather than per tile. -->
-  <p class="pricing-fineprint">
-    Both trials end the same way: add billing to stay on Agentic Commerce,
-    or do nothing and the account moves to the Free Producer Sandbox —
-    3 endpoints, 200 challenges a month, 1,000 sats max per challenge. You
-    keep the account and your endpoints either way.
-  </p>
-</section>
-
 <!-- ─── Production plans ─── -->
 <section class="section" id="plans">
-  <h2 class="pricing-subhead">Production plans.</h2>
+  <h2 class="pricing-subhead">One plan. Start with a 30-day free trial.</h2>
   <p class="onboarding-note">
-    One paid plan, one price. It includes a 30-day free trial, bills
-    monthly, and you can cancel anytime.
-  </p>
+        One paid plan, one price. The trial needs a card but charges nothing
+        for 30 days; cancel anytime.
+      </p>
 
   <div class="pricing-grid">
     <div class="pricing-card">
@@ -215,7 +143,7 @@
       <div class="pricing-actions">
         <a class="cta cta-primary"
            href="https://api.lightningenable.com/Checkout?plan=individual&utm_source=site&utm_medium=pricing-page&utm_campaign=gtm-aug-2026"
-           target="_blank" rel="noopener noreferrer">Start free trial</a>
+           target="_blank" rel="noopener noreferrer">Start 30-day free trial</a>
         <a class="cta-btc"
            href="https://api.lightningenable.com/BitcoinCheckout?plan=individual&utm_source=site&utm_medium=pricing-page&utm_campaign=gtm-aug-2026"
            target="_blank" rel="noopener noreferrer"
@@ -247,10 +175,22 @@
   </div>
 
   <p class="pricing-fineprint">
-    Lightning Enable is API middleware and does not hold funds. The wallet
-    (or payment provider) you connect — your own wallet over Nostr Wallet
-    Connect, Strike, or OpenNode — facilitates custody and settlement.
-  </p>
+        Lightning Enable is API middleware and does not hold funds. The wallet
+        (or payment provider) you connect — your own wallet over Nostr Wallet
+        Connect, Strike, or OpenNode — facilitates custody and settlement.
+      </p>
+      <!-- Secondary on-ramps: deliberately text links, not tiles. The agent path is
+           documented, not clickable by a human; the sandbox is the last resort. -->
+      <p class="pricing-fineprint pricing-onramps">
+        <strong>Have an agent?</strong> It can activate the same 30-day trial itself by
+        paying a 100-sat Lightning challenge, no card, and set up the selling side for you —
+        see <a href="https://docs.lightningenable.com/getting-started/sell-with-your-agent?utm_source=site&amp;utm_medium=pricing-page&amp;utm_campaign=gtm-aug-2026" target="_blank" rel="noopener noreferrer">Sell with your agent</a>.
+        Either trial ends the same way: add billing to stay on Agentic Commerce, or do nothing
+        and the account moves to the <strong>Free Producer Sandbox</strong> (3 endpoints,
+        200 challenges/mo, 1,000 sats max per challenge, no card, does not expire). You keep
+        the account and your endpoints either way. Just want to poke at it first?
+        <a href="https://api.lightningenable.com/dashboard/signup?utm_source=site&amp;utm_medium=pricing-page&amp;utm_campaign=gtm-aug-2026" target="_blank" rel="noopener noreferrer">Start in the Free Producer Sandbox</a>.
+      </p>
 </section>
 
 <!-- ─── FAQ ─── -->
