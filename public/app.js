@@ -141,12 +141,10 @@
     });
 
   // ── Open-source download counter ────────────────────────────────────
-  // Upgrade the static "24,000+" in the "In the agent ecosystem" proof
-  // card to the live cumulative total from the LE API. That endpoint is a
-  // DB-cached aggregate (MCP + HTTP clients + agent SDKs across NuGet,
-  // PyPI, npm, Docker Hub), CDN-cached and CORS-open. On any failure we
-  // leave the hardcoded fallback in place — downloads only ever go up, so
-  // a stale-but-lower static floor is always honest.
+  // The API serves a DB-cached inclusive distribution-event aggregate: cumulative
+  // NuGet/npm/Docker counters (including NostrWolfe Bridge) plus date-bounded PyPI
+  // Linehaul lifetime events. Do not fall back to `total`: it deliberately excludes
+  // PyPI lifetime events and would make the public metric drop to the incomplete subtotal.
   const elDlCount = document.getElementById("dl-count");
   if (elDlCount) {
     fetch("https://api.lightningenable.com/api/stats/downloads", {
@@ -154,8 +152,8 @@
     })
       .then((r) => (r.ok ? r.json() : Promise.reject(r.status)))
       .then((d) => {
-        if (d && typeof d.total === "number" && d.total > 0) {
-          elDlCount.textContent = d.total.toLocaleString("en-US");
+        if (typeof d?.inclusiveTotal === "number" && d.inclusiveTotal > 0) {
+          elDlCount.textContent = d.inclusiveTotal.toLocaleString("en-US");
         }
       })
       .catch(() => {
