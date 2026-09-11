@@ -141,20 +141,21 @@
     });
 
   // ── Open-source download counter ────────────────────────────────────
-  // Upgrade the static "24,000+" in the "In the agent ecosystem" proof
-  // card to the live cumulative total from the LE API. That endpoint is a
-  // DB-cached aggregate (MCP + HTTP clients + agent SDKs across NuGet,
-  // PyPI, npm, Docker Hub), CDN-cached and CORS-open. On any failure we
-  // leave the hardcoded fallback in place — downloads only ever go up, so
-  // a stale-but-lower static floor is always honest.
+  // Keep the approved "88,000+" lifetime floor in the "In the agent
+  // ecosystem" proof card. The API total is a DB-cached aggregate (MCP +
+  // HTTP clients + agent SDKs across NuGet, PyPI, npm, Docker Hub), but its
+  // comparable total excludes PyPI's rolling-window values. It can therefore
+  // fall below that lifetime floor. A live result may
+  // raise the displayed count, never lower it.
   const elDlCount = document.getElementById("dl-count");
   if (elDlCount) {
+    const floor = Number.parseInt(elDlCount.dataset.downloadFloor, 10);
     fetch("https://api.lightningenable.com/api/stats/downloads", {
       headers: { Accept: "application/json" },
     })
       .then((r) => (r.ok ? r.json() : Promise.reject(r.status)))
       .then((d) => {
-        if (d && typeof d.total === "number" && d.total > 0) {
+        if (d && typeof d.total === "number" && d.total >= floor) {
           elDlCount.textContent = d.total.toLocaleString("en-US");
         }
       })
