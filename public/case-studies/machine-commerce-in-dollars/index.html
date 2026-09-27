@@ -1,0 +1,595 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Machine Commerce, in Dollars — Amboss × Lightning Enable case study | Lightning Enable</title>
+<meta name="description" content="An AI agent bought a live weather forecast on its own — settling once in bitcoin and once in dollar-pegged USDT — over the Lightning Network, with cryptographic proof of payment and no human approval, card, or new account in the loop." />
+
+<link rel="canonical" href="https://www.lightningenable.com/case-studies/machine-commerce-in-dollars/" />
+<link rel="alternate" type="text/plain" href="/llms.txt" title="llms.txt" />
+<link rel="alternate" type="text/plain" href="/llms-full.txt" title="llms-full.txt" />
+
+<meta property="og:title" content="Machine Commerce, in Dollars — Amboss × Lightning Enable" />
+<meta property="og:description" content="An AI agent bought the same live weather forecast twice — once in bitcoin, once in dollar-pegged USDT — settled over Lightning in about a second with cryptographic proof of payment and no human in the loop." />
+<meta property="og:type" content="article" />
+<meta property="og:url" content="https://www.lightningenable.com/case-studies/machine-commerce-in-dollars/" />
+<meta property="og:site_name" content="Lightning Enable" />
+<meta property="og:image" content="https://www.lightningenable.com/images/og-card.png?v=2" />
+<meta property="og:image:width" content="1200" />
+<meta property="og:image:height" content="630" />
+<meta property="og:image:alt" content="Lightning Enable — Monetize your API for AI agents. Software paying software, per request, over Lightning." />
+<meta name="twitter:card" content="summary_large_image" />
+<meta name="twitter:title" content="Machine Commerce, in Dollars — Amboss × Lightning Enable" />
+<meta name="twitter:description" content="An AI agent bought a live weather forecast twice — once in bitcoin, once in USDT — settled in about a second with proof of payment and no human in the loop." />
+<meta name="twitter:image" content="https://www.lightningenable.com/images/og-card.png?v=2" />
+
+<link rel="icon" type="image/svg+xml" href="/favicon.svg?v=2" />
+<link rel="icon" type="image/png" sizes="512x512" href="/images/logo-icon.png" />
+<link rel="apple-touch-icon" sizes="512x512" href="/images/logo-icon.png" />
+
+<!-- JSON-LD: an Article, so search and LLM surfaces can attribute the
+     demonstration to both companies rather than reading it as product
+     marketing. -->
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "Article",
+  "headline": "Machine Commerce, in Dollars",
+  "description": "An AI agent bought a live weather forecast on its own — settling once in bitcoin and once in dollar-pegged USDT — over the Lightning Network, with cryptographic proof of payment and no human approval, card, or new account in the loop.",
+  "url": "https://www.lightningenable.com/case-studies/machine-commerce-in-dollars/",
+  "image": "https://www.lightningenable.com/images/og-card.png?v=2",
+  "publisher": { "@id": "https://www.lightningenable.com/#org" },
+  "author": [
+    { "@type": "Organization", "name": "Lightning Enable", "url": "https://www.lightningenable.com/" },
+    { "@type": "Organization", "name": "Amboss", "url": "https://amboss.tech" }
+  ],
+  "about": [
+    { "@type": "Thing", "name": "L402" },
+    { "@type": "Thing", "name": "Lightning Network" },
+    { "@type": "Thing", "name": "Agentic commerce" }
+  ]
+}
+</script>
+
+<!-- Google Analytics 4 — production hostnames only (same shim the rest of
+     the site uses, so page code never ReferenceErrors on previews). -->
+<script>
+    window.dataLayer = window.dataLayer || [];
+    function gtag(){ dataLayer.push(arguments); }
+    window.gtag = gtag;
+    (function () {
+        var prodHosts = ['lightningenable.com', 'www.lightningenable.com'];
+        if (prodHosts.indexOf(location.hostname) === -1) return;
+        var s = document.createElement('script');
+        s.async = true;
+        s.src = 'https://www.googletagmanager.com/gtag/js?id=G-3RSBQB1H59';
+        document.head.appendChild(s);
+        gtag('js', new Date());
+        gtag('config', 'G-3RSBQB1H59');
+    })();
+</script>
+
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;700;900&family=JetBrains+Mono:wght@400;700&display=swap" rel="stylesheet" />
+<link rel="stylesheet" href="/styles.css" />
+
+<style>
+/* ─── Page-specific styles: case study ─────────────────────
+ * Everything here is built from the site's own tokens (--bolt,
+ * --panel, --border, --dim, --radius, --gutter). The only new
+ * colour is Amboss magenta, used as a co-branding tint on the
+ * Amboss name and its role card — not as a second palette.
+ * ───────────────────────────────────────────────────────── */
+:root { --amboss: #ff0080; }
+
+/* Shared scaffolding. The case study is a single column of prose, so
+   it reads at a narrower measure than the homepage's card grids. */
+.cs { max-width: 46rem; }
+.cs-head { border-top: none; padding-bottom: 3rem; }
+.cs-body { padding-top: 3rem; padding-bottom: 3rem; }
+.cs-body > p:not(.callout-eyebrow) { color: var(--dim); font-size: 1.05rem; margin-bottom: 1.1rem; }
+.cs-body > p:last-child { margin-bottom: 0; }
+.cs-body > p strong { color: var(--white); font-weight: 700; }
+.cs-body > p em { color: var(--white); font-style: italic; }
+.cs-accent { color: var(--bolt); }
+.cs-amboss { color: var(--amboss); }
+
+/* Eyebrow: mono, like the site's other machine-facing labels. */
+.cs-eyebrow {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 0.75rem;
+  font-weight: 700;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--dim);
+  margin-bottom: 1.25rem;
+}
+.cs-eyebrow .cs-sep { color: var(--dim-2); }
+
+.cs-title {
+  font-size: clamp(2rem, 6vw, 3.25rem);
+  font-weight: 900;
+  letter-spacing: -0.02em;
+  line-height: 1.08;
+  margin-bottom: 1.25rem;
+}
+.cs-standfirst {
+  font-size: clamp(1.05rem, 2vw, 1.3rem);
+  line-height: 1.55;
+  color: var(--dim);
+  max-width: 60ch;
+  margin-bottom: 2.5rem;
+}
+
+/* ─── Summary strip: four labelled facts above the fold ─── */
+.cs-summary {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 1px;
+  background: var(--border);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  overflow: hidden;
+}
+@media (min-width: 760px) {
+  .cs-summary { grid-template-columns: repeat(4, minmax(0, 1fr)); }
+}
+.cs-summary-cell { background: var(--panel); padding: 1.1rem 1.15rem; }
+.cs-summary-lab {
+  display: block;
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 0.65rem;
+  font-weight: 700;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--dim);
+  margin-bottom: 0.45rem;
+}
+.cs-summary-val { font-size: 1rem; font-weight: 700; line-height: 1.25; }
+.cs-summary-val small { display: block; font-weight: 400; font-size: 0.8rem; color: var(--dim); }
+
+/* ─── Numbered steps ─── */
+.cs-steps { list-style: none; counter-reset: cs-step; margin: 2rem 0 0; display: grid; gap: 1rem; }
+.cs-steps li {
+  counter-increment: cs-step;
+  position: relative;
+  background: var(--panel);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 1.25rem 1.35rem 1.25rem 3.75rem;
+}
+.cs-steps li::before {
+  content: counter(cs-step);
+  position: absolute;
+  left: 1.25rem;
+  top: 1.2rem;
+  width: 1.75rem;
+  height: 1.75rem;
+  display: grid;
+  place-items: center;
+  border: 1px solid var(--bolt);
+  border-radius: 999px;
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 0.85rem;
+  font-weight: 700;
+  color: var(--bolt);
+}
+.cs-step-title { display: block; font-weight: 700; font-size: 1rem; margin-bottom: 0.3rem; }
+.cs-step-desc { color: var(--dim); font-size: 0.95rem; line-height: 1.55; margin: 0; }
+.cs-step-desc em { color: var(--white); }
+.cs-step-desc code {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 0.85em;
+  background: var(--bolt-soft);
+  border-radius: 4px;
+  padding: 0.15rem 0.4rem;
+  color: var(--white);
+  white-space: nowrap;
+}
+
+/* ─── Inline callout (reuses the run-summary treatment) ─── */
+.cs-note {
+  margin: 2rem 0 0;
+  padding: 1.15rem 1.3rem;
+  border: 1px solid var(--bolt);
+  border-left-width: 3px;
+  border-radius: var(--radius-sm);
+  background: var(--bolt-soft);
+  color: var(--dim);
+  font-size: 0.97rem;
+  line-height: 1.6;
+}
+.cs-note p { margin: 0; }
+.cs-note b { color: var(--white); }
+
+/* ─── Two role cards (who did what) ─── */
+.cs-roles { display: grid; grid-template-columns: 1fr; gap: 1.25rem; margin-top: 2rem; }
+@media (min-width: 760px) { .cs-roles { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
+.cs-role {
+  background: var(--panel);
+  border: 1px solid var(--border-strong);
+  border-top: 2px solid var(--bolt);
+  border-radius: var(--radius);
+  padding: 1.5rem;
+}
+/* Co-branding: the Amboss card wears a magenta top edge instead of the
+   site's bolt orange. One accent, one card — not a second palette. */
+.cs-role-amboss { border-top-color: var(--amboss); }
+.cs-role-name { font-size: 1.15rem; font-weight: 900; letter-spacing: -0.01em; margin-bottom: 0.35rem; }
+.cs-role-name a { color: var(--bolt); }
+.cs-role-amboss .cs-role-name a { color: var(--amboss); }
+.cs-role-what {
+  display: block;
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 0.66rem;
+  font-weight: 700;
+  letter-spacing: 0.13em;
+  text-transform: uppercase;
+  color: var(--dim);
+  margin-bottom: 0.85rem;
+}
+.cs-role p { color: var(--dim); font-size: 0.95rem; line-height: 1.55; margin: 0; }
+.cs-role p b { color: var(--white); font-weight: 700; }
+
+/* ─── Verified-results data panel ─── */
+.cs-data {
+  margin-top: 2rem;
+  border: 1px solid var(--border-strong);
+  border-radius: var(--radius);
+  background: var(--panel);
+  overflow-x: auto;          /* narrow screens scroll rather than wrap the rows */
+  font-family: 'JetBrains Mono', monospace;
+}
+.cs-data-head {
+  display: flex;
+  justify-content: space-between;
+  gap: 1rem;
+  flex-wrap: wrap;
+  padding: 0.95rem 1.25rem;
+  border-bottom: 1px solid var(--border);
+  font-size: 0.7rem;
+  font-weight: 700;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--dim);
+  min-width: 30rem;          /* matches the rows so the panel scrolls as one */
+}
+.cs-data-head .cs-ok { color: var(--green); }
+.cs-row {
+  display: flex;
+  justify-content: space-between;
+  gap: 1.5rem;
+  padding: 0.6rem 1.25rem;
+  border-bottom: 1px solid var(--border);
+  font-size: 0.82rem;
+  min-width: 30rem;          /* keeps key/value on one line; the panel scrolls */
+}
+.cs-row:last-child { border-bottom: none; }
+.cs-row .cs-k { color: var(--dim); }
+.cs-row .cs-v { text-align: right; font-variant-numeric: tabular-nums; color: var(--white); }
+.cs-row .cs-v.cs-hi { color: var(--bolt); font-weight: 700; }
+.cs-row .cs-v.cs-ok { color: var(--green); font-weight: 700; }
+
+/* ─── Status block ─── */
+.cs-status {
+  margin-top: 2rem;
+  padding: 1.5rem;
+  border: 1px dashed var(--border-strong);
+  border-radius: var(--radius);
+  background: var(--panel-2);
+}
+.cs-status p { color: var(--dim); font-size: 1rem; line-height: 1.6; margin-bottom: 1rem; }
+.cs-status p:last-child { margin-bottom: 0; }
+.cs-status p strong { color: var(--white); }
+
+/* ─── Joint colophon (page content, above the site footer) ─── */
+.cs-colophon {
+  display: flex;
+  justify-content: space-between;
+  gap: 1rem;
+  flex-wrap: wrap;
+  max-width: 46rem;
+  margin: 0 auto;
+  padding: 2rem var(--gutter) 0;
+  border-top: 1px solid var(--border);
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 0.75rem;
+  color: var(--dim-2);
+}
+.cs-colophon-links { display: flex; gap: 1.5rem; flex-wrap: wrap; }
+.cs-colophon-links a { color: var(--dim); }
+.cs-colophon-links a.cs-amboss { color: var(--amboss); }
+</style>
+</head>
+<body>
+
+<!-- ─── Site header (shared with the homepage) ─── -->
+<header class="site-header">
+  <a class="site-brand" href="/" aria-label="Lightning Enable home">
+    <img class="site-logo" src="/images/logo.svg" alt="Lightning Enable" width="216" height="58" />
+  </a>
+  <nav class="site-nav">
+    <a href="https://docs.lightningenable.com" target="_blank" rel="noopener noreferrer">Docs</a>
+    <a href="https://discord.gg/rX7NxHY8vx" target="_blank" rel="noopener noreferrer">Community</a>
+    <a href="/agents">Agents</a>
+    <a href="/pricing">Pricing</a>
+    <a class="site-nav-cta" href="/pricing">Start free trial</a>
+  </nav>
+</header>
+
+<!-- ─── Page head ─── -->
+<section class="section cs cs-head">
+  <p class="cs-eyebrow">
+    Case study <span class="cs-sep">·</span> <span class="cs-amboss">Amboss</span> ×
+    <span class="cs-accent">Lightning Enable</span>
+  </p>
+  <h1 class="cs-title">Machine Commerce, in Dollars</h1>
+  <p class="cs-standfirst">
+    An AI agent bought a live weather forecast on its own — settling once
+    in bitcoin and once in dollar-pegged USDT — over the Lightning Network,
+    with cryptographic proof of payment and no human approval, card, or new
+    account in the loop.
+  </p>
+
+  <div class="cs-summary">
+    <div class="cs-summary-cell">
+      <span class="cs-summary-lab">Buyer</span>
+      <span class="cs-summary-val">An AI agent</span>
+    </div>
+    <div class="cs-summary-cell">
+      <span class="cs-summary-lab">Purchase</span>
+      <span class="cs-summary-val">A weather forecast <small>Orlando, FL</small></span>
+    </div>
+    <div class="cs-summary-cell">
+      <span class="cs-summary-lab">Settled in</span>
+      <span class="cs-summary-val">BTC &amp; USDT</span>
+    </div>
+    <div class="cs-summary-cell">
+      <span class="cs-summary-lab">Cost / speed</span>
+      <span class="cs-summary-val">&lt; 1¢ <small>~1 second</small></span>
+    </div>
+  </div>
+</section>
+
+<!-- ─── The problem ─── -->
+<section class="section cs cs-body">
+  <p class="callout-eyebrow">The problem</p>
+  <h2 class="section-title">The web has no native way for software to pay</h2>
+  <p>
+    Online payments were built for a human with a credit card and a login
+    screen: accounts, checkout pages, API keys, monthly invoices. That works
+    when a person is buying. It breaks the moment the buyer is <em>software</em>
+    — an AI agent doing a task on your behalf that suddenly needs to buy a
+    piece of data or an API call. There's no human to click "Pay," and no
+    clean way to charge a fraction of a cent for a single request.
+  </p>
+  <p>
+    There's a second problem underneath it. The open, global, always-on
+    network that <em>could</em> settle those tiny machine payments is
+    Bitcoin's Lightning Network — but most businesses want to price and hold
+    value in <strong>dollars</strong>, not in an asset whose price moves. So
+    the ideal rail and the preferred unit of account have been pulling in
+    opposite directions.
+  </p>
+</section>
+
+<!-- ─── What we demonstrated ─── -->
+<section class="section cs cs-body">
+  <p class="callout-eyebrow">What we demonstrated</p>
+  <h2 class="section-title">An agent bought the same thing twice — in bitcoin, then in dollars</h2>
+  <p>
+    The agent asked a paid weather service for the
+    <strong>current forecast in Orlando, Florida</strong> — live data drawn
+    from the U.S. National Weather Service. The service answered with a price,
+    the agent paid it from a balance held on its own Lightning node, and the
+    forecast came back: <em>93°F this afternoon, with a chance of showers and
+    thunderstorms</em> — a real question answered for a fraction of a cent.
+  </p>
+  <p>
+    The completed purchase included <strong>cryptographic proof of
+    payment</strong> — and no human approved it, no card was entered, no new
+    account was created. Then the agent did the identical purchase again, this
+    time paying from a <strong>USDT (dollar-pegged stablecoin)</strong>
+    balance: same request, same real Orlando forecast, same one-second
+    settlement — the agent funding it in dollars instead of bitcoin, over the
+    same Lightning rails.
+  </p>
+</section>
+
+<!-- ─── How it works ─── -->
+<section class="section cs cs-body">
+  <p class="callout-eyebrow">How it works</p>
+  <h2 class="section-title">The request itself becomes the transaction</h2>
+  <p>
+    There's no checkout page bolted onto the API. The purchase happens inside
+    the ordinary web request, in four steps:
+  </p>
+
+  <ol class="cs-steps">
+    <li>
+      <span class="cs-step-title">The request meets a price</span>
+      <p class="cs-step-desc">
+        The agent makes a normal request. Instead of data, the service answers
+        <code>402 Payment Required</code> with a signed price challenge —
+        "here's what this costs."
+      </p>
+    </li>
+    <li>
+      <span class="cs-step-title">The agent pays over Lightning</span>
+      <p class="cs-step-desc">
+        The agent pays the tiny invoice straight from its own balance —
+        bitcoin, or a dollar-pegged stablecoin — settled on the Lightning
+        Network in about a second.
+      </p>
+    </li>
+    <li>
+      <span class="cs-step-title">The payment <em>is</em> the proof</span>
+      <p class="cs-step-desc">
+        Paying the invoice yields a cryptographic <code>preimage</code> —
+        proof it was settled. Combined with the <code>macaroon</code> the
+        service issued in the challenge, that becomes the access credential;
+        there's nothing else to log in with.
+      </p>
+    </li>
+    <li>
+      <span class="cs-step-title">The resource unlocks</span>
+      <p class="cs-step-desc">
+        The agent retries the request, presenting the payment
+        <code>preimage</code> together with the challenge's
+        <code>macaroon</code>. The service verifies both and returns
+        <code>200 OK</code> with the real data. Request → price → payment →
+        proof → resource.
+      </p>
+    </li>
+  </ol>
+
+  <div class="cs-note">
+    <p>
+      <b>Where the dollars come in.</b> When the agent paid in USDT, it spent
+      from a dollar balance — but the wider Lightning route still moved in
+      Bitcoin's native units. Amboss's infrastructure performed the conversion
+      <b>at the edge, automatically, in flight</b>, so neither the paying agent
+      nor the receiving service had to handle two assets or think about
+      exchange mechanics. The practical upshot: <b>the unit you account in
+      (dollars) and the network you settle on (Bitcoin/Lightning) don't have to
+      be the same thing.</b>
+    </p>
+  </div>
+
+  <div class="cs-roles">
+    <div class="cs-role">
+      <p class="cs-role-name">
+        <a href="https://www.lightningenable.com" target="_blank" rel="noopener noreferrer">Lightning Enable</a>
+      </p>
+      <span class="cs-role-what">The agent-commerce implementation</span>
+      <p>
+        Supplied the AI agent and the L402-protected weather endpoint, funded
+        and ran the live tests, and verified the complete purchase — from the
+        initial price challenge through payment to delivery of the forecast.
+        Its software connects both sides of the transaction: the agent buying
+        access and the API granting it after payment, without holding customer
+        funds.
+      </p>
+    </div>
+    <div class="cs-role cs-role-amboss">
+      <p class="cs-role-name">
+        <a href="https://amboss.tech" target="_blank" rel="noopener noreferrer">Amboss</a>
+      </p>
+      <span class="cs-role-what">The payment infrastructure</span>
+      <p>
+        Supplied the Lightning infrastructure, dollar liquidity, and automatic
+        <b>edge conversion</b> that enabled the agent to pay from a
+        dollar-denominated balance. Its infrastructure handled the asset
+        conversion and routing behind the purchase.
+      </p>
+    </div>
+  </div>
+</section>
+
+<!-- ─── The results ─── -->
+<section class="section cs cs-body">
+  <p class="callout-eyebrow">The results</p>
+  <h2 class="section-title">Verified, on-network, sub-cent</h2>
+  <p>
+    The dollar-funded run, exactly as recorded on the agent's node — the agent
+    spent USDT, and the service was paid in Bitcoin's units after Amboss's
+    edge conversion:
+  </p>
+
+  <div class="cs-data" role="figure" aria-label="Verified USDT-funded settlement" tabindex="0">
+    <div class="cs-data-head">
+      <span>Agent paid from USDT · live</span>
+      <span class="cs-ok">✓ proof-of-payment verified</span>
+    </div>
+    <div class="cs-row"><span class="cs-k">Flow</span><span class="cs-v">402 → paid → 200 OK · Orlando forecast returned</span></div>
+    <div class="cs-row"><span class="cs-k">Paid from</span><span class="cs-v">the agent's USDT balance</span></div>
+    <div class="cs-row"><span class="cs-k">USDT balance before</span><span class="cs-v">0.996037</span></div>
+    <div class="cs-row"><span class="cs-k">USDT balance after</span><span class="cs-v">0.992079</span></div>
+    <div class="cs-row"><span class="cs-k">Spent on the call</span><span class="cs-v cs-hi">0.003958 USDT · ≈ $0.004</span></div>
+    <div class="cs-row"><span class="cs-k">Settlement time</span><span class="cs-v">~1 second</span></div>
+    <div class="cs-row"><span class="cs-k">Human approvals</span><span class="cs-v">0</span></div>
+    <div class="cs-row"><span class="cs-k">SHA256(preimage) == payment_hash</span><span class="cs-v cs-ok">true</span></div>
+  </div>
+
+  <p style="margin-top: 1.5rem;">
+    No bank or card network sat in the transaction path; no new merchant
+    account or API key was created; there was no separate checkout. The
+    agent's dollar balance simply went down by four-tenths of a cent, and the
+    data came back.
+  </p>
+</section>
+
+<!-- ─── Why it matters ─── -->
+<section class="section cs cs-body">
+  <p class="callout-eyebrow">Why it matters</p>
+  <h2 class="section-title">A transaction primitive that machines can use natively</h2>
+  <p>
+    The engineering headline is "stablecoin payments work with
+    pay-per-request." The bigger story is what that unlocks:
+    <span class="cs-accent">the web now has a way for software to pay for
+    things natively.</span> The buyer can be a program, the seller can be an
+    API, the price can be a fraction of a cent, and the payment doubles as
+    authorization — all inside a normal request.
+  </p>
+  <p>
+    Adding dollars doesn't dilute that; it strengthens it. It
+    <strong>separates the unit a business wants to account in from the network
+    machines use to transact.</strong> Price in stable dollars, settle on
+    Bitcoin's open rails.
+    <a href="https://www.lightningenable.com" target="_blank" rel="noopener noreferrer">Lightning Enable</a>
+    is <span class="cs-accent">Bitcoin- and Lightning-native infrastructure
+    for machine commerce</span> — and this demonstration shows the same
+    purchase flow can also carry dollar-denominated payments.
+  </p>
+</section>
+
+<!-- ─── Status ─── -->
+<section class="section cs cs-body">
+  <p class="callout-eyebrow">Status &amp; what's next</p>
+  <h2 class="section-title">Early, honest, and pointed somewhere big</h2>
+  <div class="cs-status">
+    <p>
+      This was a <strong>live demonstration between two teams</strong>, not a
+      shrink-wrapped product — run on real infrastructure with real (if tiny)
+      value, proven twice and independently verified. There's engineering
+      still to harden before it's turnkey.
+    </p>
+    <p>
+      But the direction is clear: agents that discover, buy, and settle up on
+      their own; services that can meaningfully charge a tenth of a cent per
+      answer; and a machine economy that prices in dollars while settling on
+      Bitcoin. We proved the primitive. Now we build on it — together.
+    </p>
+  </div>
+</section>
+
+<!-- ─── Joint colophon (case-study credit line) ─── -->
+<div class="cs-colophon">
+  <span>A joint case study · <span class="cs-amboss">Amboss</span> × <span class="cs-accent">Lightning Enable</span></span>
+  <span class="cs-colophon-links">
+    <a class="cs-amboss" href="https://amboss.tech" target="_blank" rel="noopener noreferrer">amboss.tech</a>
+    <a href="https://www.lightningenable.com" target="_blank" rel="noopener noreferrer">lightningenable.com</a>
+  </span>
+</div>
+
+<!-- ─── Footer ─── -->
+<footer class="footer">
+  <div class="footer-line">
+    Lightning Enable is a product of
+    <a href="https://refinedelement.com" target="_blank" rel="noopener noreferrer">Refined Element, LLC</a>.
+  </div>
+  <div class="footer-links">
+    <a href="https://api.lightningenable.com/dashboard" target="_blank" rel="noopener noreferrer" title="Sign in to manage your endpoints, pricing, and revenue">Customer dashboard</a>
+    <a href="https://docs.lightningenable.com" target="_blank" rel="noopener noreferrer">Docs</a>
+    <a href="https://discord.gg/rX7NxHY8vx" target="_blank" rel="noopener noreferrer">Community</a>
+    <a href="mailto:support@lightningenable.com">Support</a>
+    <a href="/pricing">Start free trial</a>
+    <a href="https://docs.lightningenable.com/legal/terms-of-service" target="_blank" rel="noopener noreferrer">Terms</a>
+    <a href="https://docs.lightningenable.com/legal/privacy-policy" target="_blank" rel="noopener noreferrer">Privacy</a>
+  </div>
+</footer>
+
+</body>
+</html>

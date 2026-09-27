@@ -96,6 +96,7 @@ The marketing site at `https://www.lightningenable.com/` hosts a live, button-dr
 
 ## Contact and links
 
+- Case study (Amboss × Lightning Enable): an AI agent bought the same live weather forecast twice — once in bitcoin, once in dollar-pegged USDT — settling over Lightning in about a second with cryptographic proof of payment and no human in the loop: `https://www.lightningenable.com/case-studies/machine-commerce-in-dollars/`
 - Extended agent brief: `https://www.lightningenable.com/llms-full.txt`
 - Documentation: `https://docs.lightningenable.com/`
 - Sign up (three on-ramps): L402 Fast Lane `POST https://api.lightningenable.com/api/signup/l402` (~100 sats, no card) · Free Producer Sandbox `https://api.lightningenable.com/dashboard/signup` · card checkout `https://api.lightningenable.com/Checkout?plan=individual`
