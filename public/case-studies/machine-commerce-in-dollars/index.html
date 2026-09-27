@@ -77,36 +77,92 @@
 
 <style>
 /* ─── Page-specific styles: case study ─────────────────────
- * Everything here is built from the site's own tokens (--bolt,
- * --panel, --border, --dim, --radius, --gutter). The only new
- * colour is Amboss magenta, used as a co-branding tint on the
- * Amboss name and its role card — not as a second palette.
+ * The page keeps the site's shell — dark ground, Inter + JetBrains Mono,
+ * the shared nav and footer, which stay on the site's bolt orange — and
+ * restores the approved draft's own component palette for the boxes:
+ * Lightning Enable teal as the structural accent, Amboss magenta for
+ * co-branding. Every token below is declared in this page's style block
+ * only, and none of the names collide with styles.css, so nothing else
+ * on the site changes.
  * ───────────────────────────────────────────────────────── */
-:root { --amboss: #ff0080; }
+:root {
+  --surface: #12161F;
+  --surface-2: #171C27;
+  --line: #222A35;
+  --ink: #E9EDF2;
+  --muted: #97A3B1;
+  /* Lightning Enable */
+  --le: #00D4FF;
+  --le-ink: #5FE1FF;
+  --le-soft: rgba(0, 212, 255, 0.14);
+  /* Amboss */
+  --amboss: #FF3D9A;
+  --amboss-ink: #FF6BB5;
+  --amboss-soft: rgba(255, 0, 128, 0.16);
+  /* Structural accent for this page = LE teal */
+  --accent: var(--le);
+  --accent-ink: var(--le-ink);
+  --accent-soft: var(--le-soft);
+  --good: #4ED08A;
+  --spark: #F2B441;
+  --shadow: 0 1px 2px rgba(0, 0, 0, 0.4), 0 18px 44px -16px rgba(0, 0, 0, 0.6);
+  --mono: 'JetBrains Mono', ui-monospace, SFMono-Regular, Menlo, monospace;
+}
 
-/* Shared scaffolding. The case study is a single column of prose, so
-   it reads at a narrower measure than the homepage's card grids. */
+/* ─── Scaffolding ─── */
+/* A single column of prose, so it reads at a narrower measure than the
+   homepage's card grids. .section supplies the padding and centering. */
 .cs { max-width: 46rem; }
 .cs-head { border-top: none; padding-bottom: 3rem; }
 .cs-body { padding-top: 3rem; padding-bottom: 3rem; }
-.cs-body > p:not(.callout-eyebrow) { color: var(--dim); font-size: 1.05rem; margin-bottom: 1.1rem; }
+.cs-body > p:not(.callout-eyebrow) { color: var(--muted); font-size: 1.05rem; margin-bottom: 1.1rem; }
 .cs-body > p:last-child { margin-bottom: 0; }
-.cs-body > p strong { color: var(--white); font-weight: 700; }
-.cs-body > p em { color: var(--white); font-style: italic; }
-.cs-accent { color: var(--bolt); }
-.cs-amboss { color: var(--amboss); }
+.cs-body > p strong { color: var(--ink); font-weight: 700; }
+.cs-body > p em { color: var(--ink); font-style: italic; }
+.cs-accent { color: var(--accent-ink); }
+.cs-amboss { color: var(--amboss-ink); }
 
-/* Eyebrow: mono, like the site's other machine-facing labels. */
+/* Links inside the case study take the page accent, not the site bolt —
+   the nav and footer are outside .cs and keep the site's own styling. */
+.cs a,
+.cs-colophon a {
+  color: var(--accent-ink);
+  text-decoration: none;
+  border-bottom: 1.5px solid currentColor;
+  padding-bottom: 1px;
+}
+.cs a:hover,
+.cs-colophon a:hover { opacity: 0.75; text-decoration: none; }
+.cs a.cs-amboss,
+.cs-colophon a.cs-amboss { color: var(--amboss-ink); }
+.cs :focus-visible,
+.cs-colophon :focus-visible { outline: 2px solid var(--accent); outline-offset: 3px; border-radius: 2px; }
+
+/* ─── Header: eyebrow, title, standfirst, brand rule ─── */
 .cs-eyebrow {
-  font-family: 'JetBrains Mono', monospace;
-  font-size: 0.75rem;
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+  flex-wrap: wrap;
+  font-family: var(--mono);
+  font-size: 0.72rem;
   font-weight: 700;
-  letter-spacing: 0.12em;
+  letter-spacing: 0.16em;
   text-transform: uppercase;
-  color: var(--dim);
+  color: var(--muted);
   margin-bottom: 1.25rem;
 }
-.cs-eyebrow .cs-sep { color: var(--dim-2); }
+/* The two-brand dot, as a pseudo-element so the markup stays untouched. */
+.cs-eyebrow::before {
+  content: "";
+  flex: none;
+  width: 0.42rem;
+  height: 0.42rem;
+  border-radius: 50%;
+  background: linear-gradient(135deg, var(--le), var(--amboss));
+  box-shadow: 0 0 0 4px var(--amboss-soft);
+}
+.cs-eyebrow .cs-sep { color: var(--muted); opacity: 0.6; }
 
 .cs-title {
   font-size: clamp(2rem, 6vw, 3.25rem);
@@ -118,171 +174,225 @@
 .cs-standfirst {
   font-size: clamp(1.05rem, 2vw, 1.3rem);
   line-height: 1.55;
-  color: var(--dim);
-  max-width: 60ch;
-  margin-bottom: 2.5rem;
+  color: var(--muted);
+  margin-bottom: 0;
+}
+/* The collaboration rule: LE teal → Amboss magenta. Drawn as the
+   standfirst's ::after so no extra element is needed. */
+.cs-standfirst::after {
+  content: "";
+  display: block;
+  height: 3px;
+  border-radius: 3px;
+  margin-top: 1.5rem;
+  background: linear-gradient(90deg, var(--le), var(--amboss));
 }
 
-/* ─── Summary strip: four labelled facts above the fold ─── */
+/* ─── Summary strip ─── */
+/* Bordered cells on a surface: one grid gap of 1px over the line colour
+   draws every divider, so the cells share hairlines like a table. */
 .cs-summary {
   display: grid;
   grid-template-columns: repeat(2, minmax(0, 1fr));
   gap: 1px;
-  background: var(--border);
-  border: 1px solid var(--border);
-  border-radius: var(--radius);
+  background: var(--line);
+  border: 1px solid var(--line);
+  border-radius: 8px;
   overflow: hidden;
+  margin-top: 1.6rem;
 }
-@media (min-width: 760px) {
+@media (min-width: 38rem) {
   .cs-summary { grid-template-columns: repeat(4, minmax(0, 1fr)); }
 }
-.cs-summary-cell { background: var(--panel); padding: 1.1rem 1.15rem; }
+.cs-summary-cell { background: var(--surface); padding: 0.95rem 1rem; }
 .cs-summary-lab {
   display: block;
-  font-family: 'JetBrains Mono', monospace;
-  font-size: 0.65rem;
+  font-family: var(--mono);
+  font-size: 0.62rem;
   font-weight: 700;
-  letter-spacing: 0.14em;
+  letter-spacing: 0.13em;
   text-transform: uppercase;
-  color: var(--dim);
-  margin-bottom: 0.45rem;
+  color: var(--muted);
+  margin-bottom: 0.3rem;
 }
-.cs-summary-val { font-size: 1rem; font-weight: 700; line-height: 1.25; }
-.cs-summary-val small { display: block; font-weight: 400; font-size: 0.8rem; color: var(--dim); }
+.cs-summary-val {
+  display: block;
+  font-size: 1.02rem;
+  font-weight: 700;
+  letter-spacing: -0.01em;
+  line-height: 1.15;
+  color: var(--ink);
+}
+.cs-summary-val small {
+  display: block;
+  margin-top: 0.15rem;
+  font-size: 0.8rem;
+  font-weight: 400;
+  font-style: italic;
+  color: var(--muted);
+}
 
 /* ─── Numbered steps ─── */
-.cs-steps { list-style: none; counter-reset: cs-step; margin: 2rem 0 0; display: grid; gap: 1rem; }
+.cs-steps {
+  list-style: none;
+  counter-reset: cs-step;
+  padding: 0;
+  margin: 1.4rem 0 0;
+  display: grid;
+  gap: 0.8rem;
+}
 .cs-steps li {
   counter-increment: cs-step;
   position: relative;
-  background: var(--panel);
-  border: 1px solid var(--border);
-  border-radius: var(--radius);
-  padding: 1.25rem 1.35rem 1.25rem 3.75rem;
+  background: var(--surface-2);
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  padding: 1rem 1.1rem 1rem 3.4rem;
 }
 .cs-steps li::before {
   content: counter(cs-step);
   position: absolute;
-  left: 1.25rem;
-  top: 1.2rem;
-  width: 1.75rem;
-  height: 1.75rem;
+  left: 1rem;
+  top: 1rem;
+  width: 1.7rem;
+  height: 1.7rem;
   display: grid;
   place-items: center;
-  border: 1px solid var(--bolt);
-  border-radius: 999px;
-  font-family: 'JetBrains Mono', monospace;
-  font-size: 0.85rem;
+  border: 1.5px solid var(--accent);
+  border-radius: 50%;
+  font-family: var(--mono);
+  font-size: 0.9rem;
   font-weight: 700;
-  color: var(--bolt);
+  color: var(--accent-ink);
 }
-.cs-step-title { display: block; font-weight: 700; font-size: 1rem; margin-bottom: 0.3rem; }
-.cs-step-desc { color: var(--dim); font-size: 0.95rem; line-height: 1.55; margin: 0; }
-.cs-step-desc em { color: var(--white); }
+.cs-step-title { display: block; font-size: 1rem; font-weight: 700; letter-spacing: -0.01em; color: var(--ink); }
+.cs-step-desc { margin: 0.25rem 0 0; font-size: 0.96rem; line-height: 1.5; color: var(--muted); }
+.cs-step-desc em { color: var(--ink); }
 .cs-step-desc code {
-  font-family: 'JetBrains Mono', monospace;
-  font-size: 0.85em;
-  background: var(--bolt-soft);
-  border-radius: 4px;
-  padding: 0.15rem 0.4rem;
-  color: var(--white);
+  font-family: var(--mono);
+  font-size: 0.86em;
+  color: var(--ink);
+  background: var(--accent-soft);
+  padding: 0.05em 0.35em;
+  border-radius: 3px;
   white-space: nowrap;
 }
 
-/* ─── Inline callout (reuses the run-summary treatment) ─── */
+/* ─── "Where the dollars come in" callout ─── */
 .cs-note {
-  margin: 2rem 0 0;
-  padding: 1.15rem 1.3rem;
-  border: 1px solid var(--bolt);
-  border-left-width: 3px;
-  border-radius: var(--radius-sm);
-  background: var(--bolt-soft);
-  color: var(--dim);
-  font-size: 0.97rem;
-  line-height: 1.6;
+  margin: 1.5rem 0 0;
+  padding: 1rem 1.15rem;
+  border-left: 3px solid var(--accent);
+  border-radius: 0 8px 8px 0;
+  background: var(--accent-soft);
+  font-size: 0.98rem;
+  line-height: 1.55;
+  color: var(--muted);
 }
 .cs-note p { margin: 0; }
-.cs-note b { color: var(--white); }
+.cs-note b { color: var(--ink); }
 
-/* ─── Two role cards (who did what) ─── */
-.cs-roles { display: grid; grid-template-columns: 1fr; gap: 1.25rem; margin-top: 2rem; }
-@media (min-width: 760px) { .cs-roles { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
-.cs-role {
-  background: var(--panel);
-  border: 1px solid var(--border-strong);
-  border-top: 2px solid var(--bolt);
-  border-radius: var(--radius);
-  padding: 1.5rem;
+/* ─── Role cards ─── */
+/* Gradient borders: a flat surface fill painted to the padding box sits
+   over the brand gradient painted to the border box, so the transparent
+   1.6px border shows the gradient through. */
+.cs-roles {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 1rem;
+  margin-top: 1.4rem;
 }
-/* Co-branding: the Amboss card wears a magenta top edge instead of the
-   site's bolt orange. One accent, one card — not a second palette. */
-.cs-role-amboss { border-top-color: var(--amboss); }
-.cs-role-name { font-size: 1.15rem; font-weight: 900; letter-spacing: -0.01em; margin-bottom: 0.35rem; }
-.cs-role-name a { color: var(--bolt); }
-.cs-role-amboss .cs-role-name a { color: var(--amboss); }
+@media (min-width: 36rem) {
+  .cs-roles { grid-template-columns: 1fr 1fr; }
+}
+.cs-role {
+  --brand-grad: linear-gradient(135deg, #F7931A, #00D4FF);
+  border: 1.6px solid transparent;
+  border-radius: 12px;
+  padding: 1.3rem 1.4rem;
+  background:
+    linear-gradient(var(--surface-2), var(--surface-2)) padding-box,
+    var(--brand-grad) border-box;
+}
+.cs-role-amboss { --brand-grad: linear-gradient(135deg, #FF0080, #A855F7); }
+.cs-role-name { margin: 0 0 0.3rem; font-size: 1.15rem; font-weight: 800; letter-spacing: -0.015em; }
+.cs-role-name a { border-bottom: none; }
+.cs-role-name a:hover { border-bottom: 1.5px solid currentColor; opacity: 1; }
+.cs-role-amboss .cs-role-name a { color: var(--amboss-ink); }
 .cs-role-what {
   display: block;
-  font-family: 'JetBrains Mono', monospace;
-  font-size: 0.66rem;
+  margin-bottom: 0.5rem;
+  font-family: var(--mono);
+  font-size: 0.64rem;
   font-weight: 700;
   letter-spacing: 0.13em;
   text-transform: uppercase;
-  color: var(--dim);
-  margin-bottom: 0.85rem;
+  color: var(--accent-ink);
 }
-.cs-role p { color: var(--dim); font-size: 0.95rem; line-height: 1.55; margin: 0; }
-.cs-role p b { color: var(--white); font-weight: 700; }
+.cs-role-amboss .cs-role-what { color: var(--amboss-ink); }
+.cs-role p { margin: 0; font-size: 0.93rem; line-height: 1.5; color: var(--muted); }
+.cs-role p b { color: var(--ink); font-weight: 700; }
 
 /* ─── Verified-results data panel ─── */
+/* The LE → Amboss edge is a background layer rather than a positioned
+   pseudo-element, so it stays put when the panel scrolls sideways on a
+   narrow screen. background-origin keeps it inside the 1px border. */
 .cs-data {
-  margin-top: 2rem;
-  border: 1px solid var(--border-strong);
-  border-radius: var(--radius);
-  background: var(--panel);
-  overflow-x: auto;          /* narrow screens scroll rather than wrap the rows */
-  font-family: 'JetBrains Mono', monospace;
+  margin-top: 1.4rem;
+  font-family: var(--mono);
+  background-color: var(--surface);
+  background-image: linear-gradient(90deg, var(--le), var(--amboss));
+  background-repeat: no-repeat;
+  background-size: 100% 3px;
+  background-position: 0 0;
+  background-origin: padding-box;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  box-shadow: var(--shadow);
+  overflow-x: auto;
 }
 .cs-data-head {
   display: flex;
   justify-content: space-between;
   gap: 1rem;
   flex-wrap: wrap;
-  padding: 0.95rem 1.25rem;
-  border-bottom: 1px solid var(--border);
-  font-size: 0.7rem;
+  min-width: 30rem;          /* matches the rows so the panel scrolls as one */
+  padding: 0.9rem 1.15rem;
+  border-bottom: 1px dashed var(--line);
+  font-size: 0.72rem;
   font-weight: 700;
   letter-spacing: 0.1em;
   text-transform: uppercase;
-  color: var(--dim);
-  min-width: 30rem;          /* matches the rows so the panel scrolls as one */
+  color: var(--muted);
 }
-.cs-data-head .cs-ok { color: var(--green); }
+.cs-data-head .cs-ok { color: var(--good); }
 .cs-row {
   display: flex;
   justify-content: space-between;
-  gap: 1.5rem;
-  padding: 0.6rem 1.25rem;
-  border-bottom: 1px solid var(--border);
-  font-size: 0.82rem;
+  gap: 1rem;
   min-width: 30rem;          /* keeps key/value on one line; the panel scrolls */
+  padding: 0.5rem 1.15rem;
+  border-bottom: 1px solid var(--line);
+  font-size: 0.82rem;
 }
-.cs-row:last-child { border-bottom: none; }
-.cs-row .cs-k { color: var(--dim); }
-.cs-row .cs-v { text-align: right; font-variant-numeric: tabular-nums; color: var(--white); }
-.cs-row .cs-v.cs-hi { color: var(--bolt); font-weight: 700; }
-.cs-row .cs-v.cs-ok { color: var(--green); font-weight: 700; }
+.cs-row:last-child { border-bottom: 0; }
+.cs-row .cs-k { color: var(--muted); }
+.cs-row .cs-v { text-align: right; font-variant-numeric: tabular-nums; color: var(--ink); }
+.cs-row .cs-v.cs-hi { color: var(--le-ink); font-weight: 700; }
+.cs-row .cs-v.cs-ok { color: var(--good); font-weight: 700; }
 
-/* ─── Status block ─── */
+/* ─── Status box ─── */
 .cs-status {
-  margin-top: 2rem;
-  padding: 1.5rem;
-  border: 1px dashed var(--border-strong);
-  border-radius: var(--radius);
-  background: var(--panel-2);
+  margin-top: 1.4rem;
+  padding: 1.1rem 1.25rem;
+  background: var(--surface-2);
+  border: 1px dashed var(--line);
+  border-radius: 8px;
 }
-.cs-status p { color: var(--dim); font-size: 1rem; line-height: 1.6; margin-bottom: 1rem; }
+.cs-status p { margin: 0.5rem 0; font-size: 1rem; line-height: 1.6; color: var(--muted); }
+.cs-status p:first-child { margin-top: 0; }
 .cs-status p:last-child { margin-bottom: 0; }
-.cs-status p strong { color: var(--white); }
+.cs-status p strong { color: var(--ink); font-weight: 700; }
 
 /* ─── Joint colophon (page content, above the site footer) ─── */
 .cs-colophon {
@@ -292,15 +402,27 @@
   flex-wrap: wrap;
   max-width: 46rem;
   margin: 0 auto;
-  padding: 2rem var(--gutter) 0;
-  border-top: 1px solid var(--border);
-  font-family: 'JetBrains Mono', monospace;
-  font-size: 0.75rem;
-  color: var(--dim-2);
+  padding: 1.3rem var(--gutter) 0;
+  border-top: 1px solid var(--line);
+  font-family: var(--mono);
+  font-size: 0.74rem;
+  letter-spacing: 0.02em;
+  color: var(--muted);
 }
-.cs-colophon-links { display: flex; gap: 1.5rem; flex-wrap: wrap; }
-.cs-colophon-links a { color: var(--dim); }
-.cs-colophon-links a.cs-amboss { color: var(--amboss); }
+.cs-colophon-links { display: flex; gap: 1.2rem; flex-wrap: wrap; }
+
+/* ─── Section kickers ─── */
+/* The site's .callout-eyebrow, re-tinted to the page accent. Scoped to
+   .cs-body so the homepage's own callout keeps its bolt orange. */
+.cs-body > .callout-eyebrow {
+  font-family: var(--mono);
+  font-size: 0.68rem;
+  font-weight: 700;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--accent-ink);
+  margin-bottom: 0.6rem;
+}
 </style>
 </head>
 <body>
