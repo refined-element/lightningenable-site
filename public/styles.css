@@ -897,6 +897,10 @@ pre.code {
    Defined AFTER the base rule so it wins in source order at >=760px. */
 @media (min-width: 760px) {
   .proof-grid { grid-template-columns: repeat(2, 1fr); }
+  /* A featured card (the lead proof) runs the full width of the grid so an
+     odd card count still reads as a deliberate layout rather than an orphan.
+     Keyed off a class, not nth-child, so reordering the cards keeps it. */
+  .proof-grid .proof-card--featured { grid-column: 1 / -1; }
 }
 .proof-card {
   background: var(--panel);
