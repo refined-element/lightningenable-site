@@ -18,7 +18,11 @@
 //   5. Free Producer Sandbox caps stay exactly: 3 endpoints,
 //      200 challenges/month, 1,000 sats max per challenge.
 //   6. The "Pay with Bitcoin — 10% off" promo CTA is demoted: the
-//      discount claim is gone; a plain /BitcoinCheckout link stays.
+//      discount claim is gone. Superseded 2026-10-11 (owner): the
+//      secondary CTA points at the sats-renewal docs (25,000 sats /
+//      30 days over L402), so the site states one sats price. The
+//      legacy USD-pegged /BitcoinCheckout page stays live for old
+//      links but is no longer linked from the pricing surfaces.
 //
 // Run with `node --test tests/` (or `npm test`).
 
@@ -256,7 +260,7 @@ test('the Free Sandbox is described as free with "no card"', () => {
   }
 });
 
-// ── 7. Bitcoin checkout: demoted, not retired ─────────────────────
+// ── 7. sats CTA: one public sats price ────────────────────────────
 
 test('the "10% off" Bitcoin discount claim appears nowhere under public/', () => {
   const hits = [];
@@ -272,14 +276,19 @@ test('the "10% off" Bitcoin discount claim appears nowhere under public/', () =>
   );
 });
 
-test("the /BitcoinCheckout link target survives on the pricing page", () => {
-  // Demoted, not retired: the discount promo is gone but paying the
-  // subscription in Bitcoin is still offered at the point of payment.
-  assert.match(
-    read(p("pricing", "index.html")),
-    /BitcoinCheckout/,
-    "pricing/index.html must keep a plain link to /BitcoinCheckout",
-  );
+test("the sats CTA points at the sats-renewal docs, not /BitcoinCheckout", () => {
+  // One public sats price: the legacy /BitcoinCheckout page is
+  // USD-pegged (it charges ~$49 in sats), which contradicts the flat
+  // 25,000 sats / 30 days L402 renewal price. The page stays live for
+  // old links; the pricing surfaces just stop linking to it.
+  for (const file of [p("index.html"), p("pricing", "index.html")]) {
+    const html = read(file);
+    assert.doesNotMatch(html, /BitcoinCheckout/, `${rel(file)} must not link to /BitcoinCheckout`);
+    const cta = html.match(/<a class="cta-btc"[\s\S]*?<\/a>/);
+    assert.ok(cta, `${rel(file)} must keep the cta-btc button`);
+    assert.match(cta[0], /activate-with-lightning[^"]*#renew-in-sats"/, `${rel(file)} cta-btc must link to #renew-in-sats`);
+    assert.match(cta[0], /25,000 sats \/ 30 days/, `${rel(file)} cta-btc must state the sats price`);
+  }
 });
 
 // ── 8. Custody language ───────────────────────────────────────────
