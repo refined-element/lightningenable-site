@@ -260,7 +260,7 @@ test('the Free Sandbox is described as free with "no card"', () => {
   }
 });
 
-// ── 7. Bitcoin checkout: demoted, not retired ─────────────────────
+// ── 7. sats CTA: one public sats price ────────────────────────────
 
 test('the "10% off" Bitcoin discount claim appears nowhere under public/', () => {
   const hits = [];
