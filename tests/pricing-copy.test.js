@@ -19,7 +19,7 @@
 //      200 challenges/month, 1,000 sats max per challenge.
 //   6. The "Pay with Bitcoin — 10% off" promo CTA is demoted: the
 //      discount claim is gone. Superseded 2026-10-11 (owner): the
-//      secondary CTA points at the sats-renewal docs (25,000 sats /
+//      secondary CTA points at the sats-renewal docs (30,000 sats /
 //      30 days over L402), so the site states one sats price. The
 //      legacy USD-pegged /BitcoinCheckout page stays live for old
 //      links but is no longer linked from the pricing surfaces.
@@ -279,7 +279,7 @@ test('the "10% off" Bitcoin discount claim appears nowhere under public/', () =>
 test("the sats CTA points at the sats-renewal docs, not /BitcoinCheckout", () => {
   // One public sats price: the legacy /BitcoinCheckout page is
   // USD-pegged (it charges ~$49 in sats), which contradicts the flat
-  // 25,000 sats / 30 days L402 renewal price. The page stays live for
+  // 30,000 sats / 30 days L402 renewal price. The page stays live for
   // old links; the pricing surfaces just stop linking to it.
   for (const file of [p("index.html"), p("pricing", "index.html")]) {
     const html = read(file);
@@ -287,7 +287,7 @@ test("the sats CTA points at the sats-renewal docs, not /BitcoinCheckout", () =>
     const cta = html.match(/<a class="cta-btc"[\s\S]*?<\/a>/);
     assert.ok(cta, `${rel(file)} must keep the cta-btc button`);
     assert.match(cta[0], /activate-with-lightning[^"]*#renew-in-sats"/, `${rel(file)} cta-btc must link to #renew-in-sats`);
-    assert.match(cta[0], /25,000 sats \/ 30 days/, `${rel(file)} cta-btc must state the sats price`);
+    assert.match(cta[0], /30,000 sats \/ 30 days/, `${rel(file)} cta-btc must state the sats price`);
   }
 });
 
