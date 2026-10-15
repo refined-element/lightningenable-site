@@ -78,7 +78,7 @@ export default async function handler(req, res) {
     return res.status(405).json({ error: "Method not allowed" });
   }
 
-  const city = (req.query.city || "Miami").toString().slice(0, 64);
+  const city = sanitizeCity(req.query.city);
   const auth = req.headers.authorization || "";
   const parsed = parseL402(auth);
 
@@ -211,6 +211,38 @@ function sendUndeliverable(res, err, verification) {
       paymentHash: verification.paymentHash,
     },
   });
+}
+
+/**
+ * Whitelist the visitor-supplied city before it reaches anything
+ * durable. The raw value used to flow straight into the Lightning
+ * invoice `description` — a memo that is written to the merchant's
+ * node database, shown in wallet UIs (Alby Hub, CoinOS, ...), relayed
+ * to the payee, and often logged. That made the public demo's city
+ * box a free write channel into every one of those surfaces; probes
+ * like `"><script>alert(1)</script>` and `${env:DEMO_AGENT_NWC_URL}`
+ * have been observed in the operator's transaction log.
+ *
+ * Policy: keep Unicode letters and combining marks (São Paulo, Zürich,
+ * 東京), spaces, hyphens, apostrophes and periods. Drop everything
+ * else — quotes, angle brackets, braces, dollar signs, slashes,
+ * digits. Collapse whitespace, trim, cap at 64 chars, and fall back to
+ * the default when nothing survives. Geocoding uses the same value so
+ * the memo always describes what was actually looked up.
+ *
+ * Exported for unit testing (tests/sanitize-city.test.js).
+ */
+const DEFAULT_CITY = "Miami";
+const CITY_MAX_LEN = 64;
+export function sanitizeCity(raw) {
+  if (raw == null) return DEFAULT_CITY;
+  const cleaned = String(raw)
+    .replace(/[^\p{L}\p{M} '.\-]/gu, "")
+    .replace(/\s+/g, " ")
+    .trim()
+    .slice(0, CITY_MAX_LEN)
+    .trim();
+  return cleaned.length > 0 ? cleaned : DEFAULT_CITY;
 }
 
 function parseL402(authHeader) {
